@@ -3,6 +3,7 @@ package com.bitwarden.ui.platform.theme
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,6 +33,21 @@ const val DEFAULT_FADE_TRANSITION_TIME_MS: Int = 300
  * [TransitionProviders].
  */
 const val DEFAULT_SLIDE_TRANSITION_TIME_MS: Int = 450
+
+/**
+ * 丝滑过渡动画时间（毫秒）
+ */
+const val SILK_TRANSITION_TIME_MS: Int = 300
+
+/**
+ * 丝滑过渡动画的弹簧阻尼值
+ */
+const val SILK_SPRING_DAMPING_RATIO: Float = 0.85f
+
+/**
+ * 丝滑过渡动画的弹簧刚度值
+ */
+const val SILK_SPRING_STIFFNESS: Float = 300f
 
 /**
  * The default transition time (in milliseconds) for all slide transitions in the
@@ -225,45 +241,53 @@ object RootTransitionProviders {
 
         /**
          * Slides the new screen in from the start (left) of the screen towards the end (right).
+         * 使用丝滑的弹簧动画效果。
          */
         val pushToEnd: NonNullEnterTransitionProvider = {
-            val totalTransitionDurationMs = DEFAULT_PUSH_TRANSITION_TIME_MS
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(durationMillis = totalTransitionDurationMs),
-                initialOffset = { fullWidth -> fullWidth / 2 },
+                animationSpec = spring(
+                    dampingRatio = SILK_SPRING_DAMPING_RATIO,
+                    stiffness = SILK_SPRING_STIFFNESS,
+                ),
+                initialOffset = { fullWidth -> fullWidth / 3 },
             ) + fadeIn(
                 animationSpec = tween(
-                    durationMillis = totalTransitionDurationMs / 2,
-                    delayMillis = totalTransitionDurationMs / 2,
+                    durationMillis = SILK_TRANSITION_TIME_MS,
                 ),
             )
         }
 
         /**
          * Slides the new screen in from the end (right) of the screen towards the start (left).
+         * 使用丝滑的弹簧动画效果。
          */
         val pushToStart: NonNullEnterTransitionProvider = {
-            val totalTransitionDurationMs = DEFAULT_PUSH_TRANSITION_TIME_MS
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(durationMillis = totalTransitionDurationMs),
-                initialOffset = { fullWidth -> fullWidth / 2 },
+                animationSpec = spring(
+                    dampingRatio = SILK_SPRING_DAMPING_RATIO,
+                    stiffness = SILK_SPRING_STIFFNESS,
+                ),
+                initialOffset = { fullWidth -> fullWidth / 3 },
             ) + fadeIn(
                 animationSpec = tween(
-                    durationMillis = totalTransitionDurationMs / 2,
-                    delayMillis = totalTransitionDurationMs / 2,
+                    durationMillis = SILK_TRANSITION_TIME_MS,
                 ),
             )
         }
 
         /**
          * Slides the new screen in from the bottom of the screen.
+         * 使用丝滑的弹簧动画效果。
          */
         val slideUp: NonNullEnterTransitionProvider = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                animationSpec = tween(DEFAULT_SLIDE_TRANSITION_TIME_MS),
+                animationSpec = spring(
+                    dampingRatio = SILK_SPRING_DAMPING_RATIO,
+                    stiffness = SILK_SPRING_STIFFNESS,
+                ),
             )
         }
 
@@ -304,57 +328,55 @@ object RootTransitionProviders {
 
         /**
          * Slides the current screen out to the start (left) of the screen towards the end (right).
+         * 使用丝滑的弹簧动画效果。
          */
         @Suppress("MagicNumber")
         val pushToStart: NonNullExitTransitionProvider = {
-            val totalTransitionDurationMs = DEFAULT_PUSH_TRANSITION_TIME_MS
-            val delayMs = totalTransitionDurationMs / 7
-            val slideWithoutDelayMs = totalTransitionDurationMs - delayMs
             slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(
-                    durationMillis = slideWithoutDelayMs,
-                    delayMillis = delayMs,
+                animationSpec = spring(
+                    dampingRatio = SILK_SPRING_DAMPING_RATIO,
+                    stiffness = SILK_SPRING_STIFFNESS,
                 ),
-                targetOffset = { fullWidth -> fullWidth / 2 },
+                targetOffset = { fullWidth -> fullWidth / 3 },
             ) + fadeOut(
                 animationSpec = tween(
-                    durationMillis = totalTransitionDurationMs / 2,
-                    delayMillis = delayMs,
+                    durationMillis = SILK_TRANSITION_TIME_MS,
                 ),
             )
         }
 
         /**
          * Slides the current screen out to the end (right) of the screen towards the start (left).
+         * 使用丝滑的弹簧动画效果。
          */
         @Suppress("MagicNumber")
         val pushToEnd: NonNullExitTransitionProvider = {
-            val totalTransitionDurationMs = DEFAULT_PUSH_TRANSITION_TIME_MS
-            val delayMs = totalTransitionDurationMs / 7
-            val slideWithoutDelayMs = totalTransitionDurationMs - delayMs
             slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(
-                    durationMillis = slideWithoutDelayMs,
-                    delayMillis = delayMs,
+                animationSpec = spring(
+                    dampingRatio = SILK_SPRING_DAMPING_RATIO,
+                    stiffness = SILK_SPRING_STIFFNESS,
                 ),
-                targetOffset = { fullWidth -> fullWidth / 2 },
+                targetOffset = { fullWidth -> fullWidth / 3 },
             ) + fadeOut(
                 animationSpec = tween(
-                    durationMillis = totalTransitionDurationMs / 2,
-                    delayMillis = delayMs,
+                    durationMillis = SILK_TRANSITION_TIME_MS,
                 ),
             )
         }
 
         /**
          * Slides the current screen down to the bottom of the screen.
+         * 使用丝滑的弹簧动画效果。
          */
         val slideDown: NonNullExitTransitionProvider = {
             slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                animationSpec = tween(DEFAULT_SLIDE_TRANSITION_TIME_MS),
+                animationSpec = spring(
+                    dampingRatio = SILK_SPRING_DAMPING_RATIO,
+                    stiffness = SILK_SPRING_STIFFNESS,
+                ),
             )
         }
 

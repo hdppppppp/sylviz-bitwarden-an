@@ -34,10 +34,12 @@ import com.bitwarden.ui.platform.base.util.EventsEffect
 import com.bitwarden.ui.platform.base.util.standardHorizontalMargin
 import com.bitwarden.ui.platform.components.appbar.BitwardenMediumTopAppBar
 import com.bitwarden.ui.platform.components.appbar.NavigationIcon
+import com.bitwarden.ui.platform.components.button.BitwardenOutlinedButton
 import com.bitwarden.ui.platform.components.card.color.bitwardenCardColors
 import com.bitwarden.ui.platform.components.content.BitwardenLoadingContent
 import com.bitwarden.ui.platform.components.dialog.BitwardenBasicDialog
 import com.bitwarden.ui.platform.components.dialog.BitwardenLoadingDialog
+import com.bitwarden.ui.platform.components.dialog.BitwardenTwoButtonDialog
 import com.bitwarden.ui.platform.components.scaffold.BitwardenScaffold
 import com.bitwarden.ui.platform.components.util.rememberVectorPainter
 import com.bitwarden.ui.platform.resource.BitwardenDrawable
@@ -74,9 +76,15 @@ fun OrganizationCollectionsScreen(
             BitwardenLoadingDialog(text = dialog.message())
         }
         is OrganizationCollectionsState.DialogState.ConfirmDelete -> {
-            BitwardenBasicDialog(
+            BitwardenTwoButtonDialog(
                 title = stringResource(id = BitwardenString.delete_collection),
                 message = stringResource(id = BitwardenString.delete_collection_confirmation),
+                confirmButtonText = stringResource(id = BitwardenString.yes),
+                dismissButtonText = stringResource(id = BitwardenString.cancel),
+                onConfirmClick = {
+                    viewModel.trySendAction(OrganizationCollectionsAction.ConfirmDeleteCollection(dialog.collectionId))
+                },
+                onDismissClick = { viewModel.trySendAction(OrganizationCollectionsAction.DismissDialog) },
                 onDismissRequest = { viewModel.trySendAction(OrganizationCollectionsAction.DismissDialog) },
             )
         }
@@ -177,8 +185,14 @@ fun OrganizationCollectionsScreen(
                         .fillMaxSize()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Text(text = stringResource(id = BitwardenString.an_error_has_occurred))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    BitwardenOutlinedButton(
+                        label = stringResource(id = BitwardenString.try_again),
+                        onClick = { viewModel.trySendAction(OrganizationCollectionsAction.RetryClick) },
+                    )
                 }
             }
         }

@@ -27,13 +27,13 @@ internal interface EmergencyAccessApi {
     /**
      * 获取紧急访问列表（我信任的人 + 信任我的人）
      */
-    @GET("emergency-access")
+    @GET("/emergency-access")
     suspend fun getEmergencyAccessList(): NetworkResult<EmergencyAccessResponseJson>
 
     /**
      * 邀请可信联系人
      */
-    @POST("emergency-access")
+    @POST("/emergency-access")
     suspend fun inviteEmergencyContact(
         @Body body: EmergencyAccessInviteRequestJson,
     ): NetworkResult<EmergencyAccessResponseJson.EmergencyAccessContact>
@@ -41,7 +41,7 @@ internal interface EmergencyAccessApi {
     /**
      * 接受紧急访问邀请
      */
-    @POST("emergency-access/{id}/accept")
+    @POST("/emergency-access/{id}/accept")
     suspend fun acceptEmergencyAccess(
         @Path("id") id: String,
         @Body body: EmergencyAccessAcceptRequestJson? = null,
@@ -50,7 +50,7 @@ internal interface EmergencyAccessApi {
     /**
      * 确认紧急访问关系
      */
-    @POST("emergency-access/{id}/confirm")
+    @POST("/emergency-access/{id}/confirm")
     suspend fun confirmEmergencyAccess(
         @Path("id") id: String,
         @Body body: EmergencyAccessConfirmRequestJson,
@@ -59,7 +59,7 @@ internal interface EmergencyAccessApi {
     /**
      * 更新紧急访问设置
      */
-    @PUT("emergency-access/{id}")
+    @PUT("/emergency-access/{id}")
     suspend fun updateEmergencyAccess(
         @Path("id") id: String,
         @Body body: EmergencyAccessUpdateRequestJson,
@@ -68,7 +68,7 @@ internal interface EmergencyAccessApi {
     /**
      * 删除/移除紧急访问联系人
      */
-    @DELETE("emergency-access/{id}")
+    @DELETE("/emergency-access/{id}")
     suspend fun deleteEmergencyAccess(
         @Path("id") id: String,
     ): NetworkResult<Unit>
@@ -76,7 +76,7 @@ internal interface EmergencyAccessApi {
     /**
      * 获取单个紧急访问详情
      */
-    @GET("emergency-access/{id}")
+    @GET("/emergency-access/{id}")
     suspend fun getEmergencyAccessDetails(
         @Path("id") id: String,
     ): NetworkResult<EmergencyAccessResponseJson.EmergencyAccessContact>
@@ -84,7 +84,7 @@ internal interface EmergencyAccessApi {
     /**
      * 发起紧急访问请求
      */
-    @POST("emergency-access/{id}/initiate")
+    @POST("/emergency-access/{id}/initiate")
     suspend fun initiateEmergencyAccess(
         @Path("id") id: String,
     ): NetworkResult<Unit>
@@ -92,7 +92,7 @@ internal interface EmergencyAccessApi {
     /**
      * 批准紧急访问请求
      */
-    @POST("emergency-access/{id}/approve")
+    @POST("/emergency-access/{id}/approve")
     suspend fun approveEmergencyAccess(
         @Path("id") id: String,
     ): NetworkResult<Unit>
@@ -100,7 +100,7 @@ internal interface EmergencyAccessApi {
     /**
      * 拒绝紧急访问请求
      */
-    @POST("emergency-access/{id}/reject")
+    @POST("/emergency-access/{id}/reject")
     suspend fun rejectEmergencyAccess(
         @Path("id") id: String,
     ): NetworkResult<Unit>
@@ -108,7 +108,7 @@ internal interface EmergencyAccessApi {
     /**
      * 查看被信任人的密码库（VIEW 类型）
      */
-    @GET("emergency-access/view/{id}")
+    @GET("/emergency-access/view/{id}")
     suspend fun viewEmergencyAccessVault(
         @Path("id") id: String,
     ): NetworkResult<EmergencyAccessViewVaultResponseJson>
@@ -117,7 +117,7 @@ internal interface EmergencyAccessApi {
      * 接管被信任人的账户（TAKEOVER 类型）
      * 返回被加密的主密钥和私钥
      */
-    @POST("emergency-access/{id}/takeover")
+    @POST("/emergency-access/{id}/takeover")
     suspend fun takeoverEmergencyAccess(
         @Path("id") id: String,
     ): NetworkResult<EmergencyAccessTakeoverResponseJson>
@@ -125,7 +125,7 @@ internal interface EmergencyAccessApi {
     /**
      * 重置被接管账户的密码
      */
-    @POST("emergency-access/{id}/password")
+    @POST("/emergency-access/{id}/password")
     suspend fun resetEmergencyAccessPassword(
         @Path("id") id: String,
         @Body body: EmergencyAccessPasswordRequestJson,

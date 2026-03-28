@@ -13,9 +13,9 @@ internal interface SyncApi {
      *
      * @return A [SyncResponseJson] containing the vault response model.
      */
-    @GET("sync")
+    @GET("/sync")
     suspend fun sync(): NetworkResult<SyncResponseJson>
 
-    @GET("accounts/revision-date")
+    @GET("/accounts/revision-date")
     suspend fun getAccountRevisionDateMillis(): NetworkResult<String>
 }

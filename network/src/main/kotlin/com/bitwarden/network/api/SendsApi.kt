@@ -22,14 +22,14 @@ internal interface SendsApi {
     /**
      * Create a text send.
      */
-    @POST("sends")
+    @POST("/sends")
     suspend fun createTextSend(@Body body: SendJsonRequest): NetworkResult<SyncResponseJson.Send>
 
     /**
      * Create a file send.
      * Vaultwarden uses "sends/file" instead of "sends/file/v2".
      */
-    @POST("sends/file")
+    @POST("/sends/file")
     suspend fun createFileSend(
         @Body body: SendJsonRequest,
     ): NetworkResult<CreateFileSendResponseJson>
@@ -37,7 +37,7 @@ internal interface SendsApi {
     /**
      * Updates a send.
      */
-    @PUT("sends/{sendId}")
+    @PUT("/sends/{sendId}")
     suspend fun updateSend(
         @Path("sendId") sendId: String,
         @Body body: SendJsonRequest,
@@ -46,7 +46,7 @@ internal interface SendsApi {
     /**
      * Uploads the file associated with a send.
      */
-    @POST("sends/{sendId}/file/{fileId}")
+    @POST("/sends/{sendId}/file/{fileId}")
     suspend fun uploadFile(
         @Path("sendId") sendId: String,
         @Path("fileId") fileId: String,
@@ -56,13 +56,13 @@ internal interface SendsApi {
     /**
      * Deletes a send.
      */
-    @DELETE("sends/{sendId}")
+    @DELETE("/sends/{sendId}")
     suspend fun deleteSend(@Path("sendId") sendId: String): NetworkResult<Unit>
 
     /**
      * Deletes a send.
      */
-    @PUT("sends/{sendId}/remove-password")
+    @PUT("/sends/{sendId}/remove-password")
     suspend fun removeSendPassword(
         @Path("sendId") sendId: String,
     ): NetworkResult<SyncResponseJson.Send>
@@ -70,6 +70,6 @@ internal interface SendsApi {
     /**
      * Gets a send.
      */
-    @GET("sends/{sendId}")
+    @GET("/sends/{sendId}")
     suspend fun getSend(@Path("sendId") sendId: String): NetworkResult<SyncResponseJson.Send>
 }

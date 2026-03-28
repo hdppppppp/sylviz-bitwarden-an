@@ -30,7 +30,7 @@ internal interface CiphersApi {
      * Archive a cipher.
      * Note: Not supported by Vaultwarden, falls back to soft-delete behavior.
      */
-    @PUT("ciphers/{cipherId}/delete")
+    @PUT("/ciphers/{cipherId}/delete")
     suspend fun archiveCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<SyncResponseJson.Cipher>
@@ -39,7 +39,7 @@ internal interface CiphersApi {
      * Unarchive a cipher.
      * Note: Not supported by Vaultwarden, falls back to restore behavior.
      */
-    @PUT("ciphers/{cipherId}/restore")
+    @PUT("/ciphers/{cipherId}/restore")
     suspend fun unarchiveCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<SyncResponseJson.Cipher>
@@ -47,13 +47,13 @@ internal interface CiphersApi {
     /**
      * Create a cipher.
      */
-    @POST("ciphers")
+    @POST("/ciphers")
     suspend fun createCipher(@Body body: CipherJsonRequest): NetworkResult<SyncResponseJson.Cipher>
 
     /**
      * Create a cipher that belongs to an organization.
      */
-    @POST("ciphers/create")
+    @POST("/ciphers/create")
     suspend fun createCipherInOrganization(
         @Body body: CreateCipherInOrganizationJsonRequest,
     ): NetworkResult<SyncResponseJson.Cipher>
@@ -61,7 +61,7 @@ internal interface CiphersApi {
     /**
      * Associates an attachment with a cipher.
      */
-    @POST("ciphers/{cipherId}/attachment/v2")
+    @POST("/ciphers/{cipherId}/attachment/v2")
     suspend fun createAttachment(
         @Path("cipherId") cipherId: String,
         @Body body: AttachmentJsonRequest,
@@ -70,7 +70,7 @@ internal interface CiphersApi {
     /**
      * Uploads the attachment associated with a cipher.
      */
-    @POST("ciphers/{cipherId}/attachment/{attachmentId}")
+    @POST("/ciphers/{cipherId}/attachment/{attachmentId}")
     suspend fun uploadAttachment(
         @Path("cipherId") cipherId: String,
         @Path("attachmentId") attachmentId: String,
@@ -80,7 +80,7 @@ internal interface CiphersApi {
     /**
      * Updates a cipher.
      */
-    @PUT("ciphers/{cipherId}")
+    @PUT("/ciphers/{cipherId}")
     suspend fun updateCipher(
         @Path("cipherId") cipherId: String,
         @Body body: CipherJsonRequest,
@@ -89,7 +89,7 @@ internal interface CiphersApi {
     /**
      * Shares a cipher.
      */
-    @PUT("ciphers/{cipherId}/share")
+    @PUT("/ciphers/{cipherId}/share")
     suspend fun shareCipher(
         @Path("cipherId") cipherId: String,
         @Body body: ShareCipherJsonRequest,
@@ -98,7 +98,7 @@ internal interface CiphersApi {
     /**
      * Shares multiple ciphers in bulk.
      */
-    @PUT("ciphers/share")
+    @PUT("/ciphers/share")
     suspend fun bulkShareCiphers(
         @Body body: BulkShareCiphersJsonRequest,
     ): NetworkResult<CipherMiniResponseJson>
@@ -106,7 +106,7 @@ internal interface CiphersApi {
     /**
      * Shares an attachment.
      */
-    @POST("ciphers/{cipherId}/attachment/{attachmentId}/share")
+    @POST("/ciphers/{cipherId}/attachment/{attachmentId}/share")
     suspend fun shareAttachment(
         @Path("cipherId") cipherId: String,
         @Path("attachmentId") attachmentId: String,
@@ -117,7 +117,7 @@ internal interface CiphersApi {
     /**
      * Updates a cipher's collections.
      */
-    @PUT("ciphers/{cipherId}/collections")
+    @PUT("/ciphers/{cipherId}/collections")
     suspend fun updateCipherCollections(
         @Path("cipherId") cipherId: String,
         @Body body: UpdateCipherCollectionsJsonRequest,
@@ -126,7 +126,7 @@ internal interface CiphersApi {
     /**
      * Hard deletes a cipher.
      */
-    @DELETE("ciphers/{cipherId}")
+    @DELETE("/ciphers/{cipherId}")
     suspend fun hardDeleteCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<Unit>
@@ -134,7 +134,7 @@ internal interface CiphersApi {
     /**
      * Soft deletes a cipher.
      */
-    @PUT("ciphers/{cipherId}/delete")
+    @PUT("/ciphers/{cipherId}/delete")
     suspend fun softDeleteCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<Unit>
@@ -142,7 +142,7 @@ internal interface CiphersApi {
     /**
      * Deletes an attachment from a cipher.
      */
-    @DELETE("ciphers/{cipherId}/attachment/{attachmentId}")
+    @DELETE("/ciphers/{cipherId}/attachment/{attachmentId}")
     suspend fun deleteCipherAttachment(
         @Path("cipherId") cipherId: String,
         @Path("attachmentId") attachmentId: String,
@@ -151,7 +151,7 @@ internal interface CiphersApi {
     /**
      * Restores a cipher.
      */
-    @PUT("ciphers/{cipherId}/restore")
+    @PUT("/ciphers/{cipherId}/restore")
     suspend fun restoreCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<SyncResponseJson.Cipher>
@@ -159,7 +159,7 @@ internal interface CiphersApi {
     /**
      * Gets a cipher.
      */
-    @GET("ciphers/{cipherId}")
+    @GET("/ciphers/{cipherId}")
     suspend fun getCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<SyncResponseJson.Cipher>
@@ -167,7 +167,7 @@ internal interface CiphersApi {
     /**
      * Gets a cipher attachment.
      */
-    @GET("ciphers/{cipherId}/attachment/{attachmentId}")
+    @GET("/ciphers/{cipherId}/attachment/{attachmentId}")
     suspend fun getCipherAttachment(
         @Path("cipherId") cipherId: String,
         @Path("attachmentId") attachmentId: String,
@@ -177,10 +177,10 @@ internal interface CiphersApi {
      * Indicates if the active user has unassigned ciphers.
      * Note: Vaultwarden does not support this endpoint; always returns false as fallback.
      */
-    @GET("ciphers/has-unassigned-ciphers")
+    @GET("/ciphers/has-unassigned-ciphers")
     suspend fun hasUnassignedCiphers(): NetworkResult<Boolean>
 
-    @POST("ciphers/import")
+    @POST("/ciphers/import")
     suspend fun importCiphers(
         @Body body: ImportCiphersJsonRequest,
     ): NetworkResult<Unit>

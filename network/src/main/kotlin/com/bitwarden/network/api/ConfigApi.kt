@@ -9,6 +9,6 @@ import retrofit2.http.GET
  */
 internal interface ConfigApi {
 
-    @GET("config")
+    @GET("/config")
     suspend fun getConfig(): NetworkResult<ConfigResponseJson>
 }

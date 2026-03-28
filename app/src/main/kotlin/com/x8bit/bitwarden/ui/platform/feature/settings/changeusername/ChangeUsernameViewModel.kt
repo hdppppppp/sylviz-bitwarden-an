@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.bitwarden.network.service.AccountsService
 import com.bitwarden.ui.platform.base.BaseViewModel
 import com.x8bit.bitwarden.data.auth.datasource.disk.AuthDiskSource
+import com.x8bit.bitwarden.data.auth.repository.util.toUpdatedProfileNameJson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,6 +33,10 @@ class ChangeUsernameViewModel @Inject constructor(
         viewModelScope.launch {
             accountsService.updateProfile(name = mutableStateFlow.value.newName.takeIf { it.isNotBlank() })
                 .onSuccess { updatedName ->
+                    // 更新本地存储的用户状态
+                    authDiskSource.userState?.let { currentUserState ->
+                        authDiskSource.userState = currentUserState.toUpdatedProfileNameJson(newName = updatedName)
+                    }
                     mutableStateFlow.value = mutableStateFlow.value.copy(
                         isLoading = false,
                         currentName = updatedName.orEmpty(),

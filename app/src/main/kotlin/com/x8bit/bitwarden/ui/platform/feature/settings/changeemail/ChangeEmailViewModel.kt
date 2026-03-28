@@ -7,6 +7,7 @@ import com.x8bit.bitwarden.data.auth.datasource.disk.AuthDiskSource
 import com.x8bit.bitwarden.data.auth.datasource.sdk.AuthSdkSource
 import com.bitwarden.crypto.HashPurpose
 import com.x8bit.bitwarden.data.auth.repository.util.toSdkParams
+import com.x8bit.bitwarden.data.auth.repository.util.toUpdatedProfileEmailJson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -87,6 +88,10 @@ class ChangeEmailViewModel @Inject constructor(
                 .onSuccess { hash ->
                     accountsService.changeEmail(hash, state.newEmail, state.token)
                         .onSuccess {
+                            // 更新本地存储的用户状态
+                            authDiskSource.userState?.let { currentUserState ->
+                                authDiskSource.userState = currentUserState.toUpdatedProfileEmailJson(newEmail = state.newEmail)
+                            }
                             mutableStateFlow.value = mutableStateFlow.value.copy(
                                 isLoading = false,
                                 dialog = ChangeEmailDialog.Success("电子邮箱已成功更改为 ${state.newEmail}。"),

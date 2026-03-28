@@ -18,13 +18,13 @@ internal interface FoldersApi {
     /**
      * Create a folder.
      */
-    @POST("folders")
+    @POST("/folders")
     suspend fun createFolder(@Body body: FolderJsonRequest): NetworkResult<SyncResponseJson.Folder>
 
     /**
      * Gets a folder.
      */
-    @GET("folders/{folderId}")
+    @GET("/folders/{folderId}")
     suspend fun getFolder(
         @Path("folderId") folderId: String,
     ): NetworkResult<SyncResponseJson.Folder>
@@ -32,7 +32,7 @@ internal interface FoldersApi {
     /**
      * Updates a folder.
      */
-    @PUT("folders/{folderId}")
+    @PUT("/folders/{folderId}")
     suspend fun updateFolder(
         @Path("folderId") folderId: String,
         @Body body: FolderJsonRequest,
@@ -41,6 +41,6 @@ internal interface FoldersApi {
     /**
      * Deletes a folder.
      */
-    @DELETE("folders/{folderId}")
+    @DELETE("/folders/{folderId}")
     suspend fun deleteFolder(@Path("folderId") folderId: String): NetworkResult<Unit>
 }

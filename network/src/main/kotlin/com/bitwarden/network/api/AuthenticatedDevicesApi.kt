@@ -22,10 +22,10 @@ internal interface AuthenticatedDevicesApi {
         @Body request: TrustedDeviceKeysRequestJson,
     ): NetworkResult<TrustedDeviceKeysResponseJson>
 
-    @GET("devices")
+    @GET("/devices")
     suspend fun getDevices(): NetworkResult<List<DeviceResponseJson>>
 
-    @DELETE("devices/{id}")
+    @DELETE("/devices/{id}")
     suspend fun deleteDevice(
         @Path("id") id: String,
     ): NetworkResult<Unit>

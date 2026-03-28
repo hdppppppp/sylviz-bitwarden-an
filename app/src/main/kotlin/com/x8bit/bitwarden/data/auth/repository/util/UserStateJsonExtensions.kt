@@ -20,6 +20,42 @@ import com.x8bit.bitwarden.data.vault.repository.model.VaultUnlockData
 import com.x8bit.bitwarden.data.vault.repository.util.statusFor
 
 /**
+ * 更新用户名称
+ * 在修改用户名成功后更新本地存储的用户状态
+ */
+fun UserStateJson.toUpdatedProfileNameJson(
+    newName: String?,
+): UserStateJson {
+    val account = this.activeAccount
+    val profile = account.profile
+    val updatedProfile = profile.copy(name = newName)
+    val updatedAccount = account.copy(profile = updatedProfile)
+    return this.copy(
+        accounts = accounts
+            .toMutableMap()
+            .apply { replace(activeUserId, updatedAccount) },
+    )
+}
+
+/**
+ * 更新用户邮箱
+ * 在修改邮箱成功后更新本地存储的用户状态
+ */
+fun UserStateJson.toUpdatedProfileEmailJson(
+    newEmail: String,
+): UserStateJson {
+    val account = this.activeAccount
+    val profile = account.profile
+    val updatedProfile = profile.copy(email = newEmail)
+    val updatedAccount = account.copy(profile = updatedProfile)
+    return this.copy(
+        accounts = accounts
+            .toMutableMap()
+            .apply { replace(activeUserId, updatedAccount) },
+    )
+}
+
+/**
  * Updates the given [UserStateJson] with the data to indicate that the password has been removed.
  * The original will be returned if the [userId] does not match any accounts in the [UserStateJson].
  */

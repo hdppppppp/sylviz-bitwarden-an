@@ -30,6 +30,7 @@ import com.bitwarden.ui.platform.base.util.EventsEffect
 import com.bitwarden.ui.platform.base.util.standardHorizontalMargin
 import com.bitwarden.ui.platform.components.appbar.BitwardenMediumTopAppBar
 import com.bitwarden.ui.platform.components.appbar.NavigationIcon
+import com.bitwarden.ui.platform.components.button.BitwardenOutlinedButton
 import com.bitwarden.ui.platform.components.card.color.bitwardenCardColors
 import com.bitwarden.ui.platform.components.content.BitwardenLoadingContent
 import com.bitwarden.ui.platform.components.dialog.BitwardenBasicDialog
@@ -149,8 +150,14 @@ fun OrganizationPoliciesScreen(
                         .fillMaxSize()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Text(text = stringResource(id = BitwardenString.an_error_has_occurred))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    BitwardenOutlinedButton(
+                        label = stringResource(id = BitwardenString.try_again),
+                        onClick = { viewModel.trySendAction(OrganizationPoliciesAction.RetryClick) },
+                    )
                 }
             }
         }

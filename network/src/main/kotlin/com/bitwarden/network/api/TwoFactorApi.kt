@@ -24,12 +24,12 @@ internal interface TwoFactorApi {
 
     // region TOTP Authenticator
 
-    @POST("two-factor/get-authenticator")
+    @POST("/two-factor/get-authenticator")
     suspend fun getAuthenticatorKey(
         @Body body: TwoFactorSetupRequestJson,
     ): NetworkResult<TwoFactorAuthenticatorResponseJson>
 
-    @PUT("two-factor/authenticator")
+    @PUT("/two-factor/authenticator")
     suspend fun enableAuthenticator(
         @Body body: TwoFactorSetupRequestJson,
     ): NetworkResult<TwoFactorAuthenticatorResponseJson>
@@ -38,12 +38,12 @@ internal interface TwoFactorApi {
 
     // region Email
 
-    @POST("two-factor/send-email")
+    @POST("/two-factor/send-email")
     suspend fun sendEmailSetupCode(
         @Body body: TwoFactorSetupRequestJson,
     ): NetworkResult<Unit>
 
-    @PUT("two-factor/email")
+    @PUT("/two-factor/email")
     suspend fun enableEmail(
         @Body body: TwoFactorEmailRequestJson,
     ): NetworkResult<TwoFactorEmailResponseJson>
@@ -52,12 +52,12 @@ internal interface TwoFactorApi {
 
     // region Duo
 
-    @POST("two-factor/get-duo")
+    @POST("/two-factor/get-duo")
     suspend fun getDuoConfig(
         @Body body: TwoFactorSetupRequestJson,
     ): NetworkResult<TwoFactorDuoResponseJson>
 
-    @PUT("two-factor/duo")
+    @PUT("/two-factor/duo")
     suspend fun enableDuo(
         @Body body: TwoFactorDuoRequestJson,
     ): NetworkResult<TwoFactorDuoResponseJson>
@@ -66,12 +66,12 @@ internal interface TwoFactorApi {
 
     // region YubiKey
 
-    @POST("two-factor/get-yubikey")
+    @POST("/two-factor/get-yubikey")
     suspend fun getYubiKeyConfig(
         @Body body: TwoFactorSetupRequestJson,
     ): NetworkResult<TwoFactorYubiKeyResponseJson>
 
-    @PUT("two-factor/yubikey")
+    @PUT("/two-factor/yubikey")
     suspend fun enableYubiKey(
         @Body body: TwoFactorYubiKeyRequestJson,
     ): NetworkResult<TwoFactorYubiKeyResponseJson>
@@ -80,12 +80,12 @@ internal interface TwoFactorApi {
 
     // region WebAuthn
 
-    @POST("two-factor/get-webauthn")
+    @POST("/two-factor/get-webauthn")
     suspend fun getWebAuthnConfig(
         @Body body: TwoFactorSetupRequestJson,
     ): NetworkResult<TwoFactorWebAuthnResponseJson>
 
-    @DELETE("two-factor/webauthn")
+    @DELETE("/two-factor/webauthn")
     suspend fun deleteWebAuthnCredential(
         @Query("id") id: Int,
         @Body body: TwoFactorSetupRequestJson,
@@ -95,7 +95,7 @@ internal interface TwoFactorApi {
 
     // region Recovery Code
 
-    @POST("two-factor/get-recover")
+    @POST("/two-factor/get-recover")
     suspend fun getRecoveryCode(
         @Body body: TwoFactorSetupRequestJson,
     ): NetworkResult<TwoFactorRecoveryResponseJson>

@@ -4,6 +4,10 @@ import androidx.lifecycle.viewModelScope
 import com.bitwarden.network.model.TwoFactorWebAuthnCredential
 import com.bitwarden.network.service.TwoFactorService
 import com.bitwarden.ui.platform.base.BaseViewModel
+import com.x8bit.bitwarden.data.auth.datasource.disk.AuthDiskSource
+import com.x8bit.bitwarden.data.auth.datasource.sdk.AuthSdkSource
+import com.bitwarden.crypto.HashPurpose
+import com.x8bit.bitwarden.data.auth.repository.util.toSdkParams
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -13,13 +17,15 @@ class SecurityKeysViewModel
 @Inject
 constructor(
         private val twoFactorService: TwoFactorService,
+        private val authDiskSource: AuthDiskSource,
+        private val authSdkSource: AuthSdkSource,
 ) :
         BaseViewModel<SecurityKeysState, SecurityKeysEvent, SecurityKeysAction>(
                 initialState = SecurityKeysState(),
         ) {
         override fun handleAction(action: SecurityKeysAction) {
                 when (action) {
-                        is SecurityKeysAction.LoadKeys -> loadKeys(action.masterPasswordHash)
+                        is SecurityKeysAction.LoadKeys -> loadKeys(action.masterPassword)
                         is SecurityKeysAction.RequestDelete ->
                                 mutableStateFlow.value =
                                         mutableStateFlow.value.copy(confirmDeleteId = action.id)
@@ -32,25 +38,35 @@ constructor(
                 }
         }
 
-        private fun loadKeys(masterPasswordHash: String) {
+        private fun loadKeys(masterPassword: String) {
                 mutableStateFlow.value = mutableStateFlow.value.copy(isLoading = true, error = null)
                 viewModelScope.launch {
-                        twoFactorService
-                                .getWebAuthnConfig(masterPasswordHash)
-                                .onSuccess {
-                                        mutableStateFlow.value =
-                                                mutableStateFlow.value.copy(
-                                                        isLoading = false,
-                                                        keys = it.keys.orEmpty(),
-                                                        isEnabled = it.enabled,
-                                                        masterPasswordHash = masterPasswordHash,
-                                                )
+                        hashPassword(masterPassword)
+                                .onSuccess { hash ->
+                                        twoFactorService
+                                                .getWebAuthnConfig(hash)
+                                                .onSuccess {
+                                                        mutableStateFlow.value =
+                                                                mutableStateFlow.value.copy(
+                                                                        isLoading = false,
+                                                                        keys = it.keys.orEmpty(),
+                                                                        isEnabled = it.enabled,
+                                                                        masterPasswordHash = hash,
+                                                                )
+                                                }
+                                                .onFailure {
+                                                        mutableStateFlow.value =
+                                                                mutableStateFlow.value.copy(
+                                                                        isLoading = false,
+                                                                        error = "加载安全密钥失败，请检查密码是否正确。",
+                                                                )
+                                                }
                                 }
                                 .onFailure {
                                         mutableStateFlow.value =
                                                 mutableStateFlow.value.copy(
                                                         isLoading = false,
-                                                        error = "加载安全密钥失败，请检查密码是否正确。",
+                                                        error = "密码验证失败，请重试。",
                                                 )
                                 }
                 }
@@ -85,6 +101,16 @@ constructor(
                                 }
                 }
         }
+
+        private suspend fun hashPassword(password: String): Result<String> {
+                val account = authDiskSource.userState?.activeAccount ?: return Result.failure(Exception("No active account"))
+                return authSdkSource.hashPassword(
+                        email = account.profile.email,
+                        password = password,
+                        kdf = account.profile.toSdkParams(),
+                        purpose = HashPurpose.SERVER_AUTHORIZATION,
+                )
+        }
 }
 
 data class SecurityKeysState(
@@ -105,7 +131,7 @@ sealed class SecurityKeysDialog {
 sealed class SecurityKeysEvent
 
 sealed class SecurityKeysAction {
-        data class LoadKeys(val masterPasswordHash: String) : SecurityKeysAction()
+        data class LoadKeys(val masterPassword: String) : SecurityKeysAction()
         data class RequestDelete(val id: Int) : SecurityKeysAction()
         data class ConfirmDelete(val id: Int) : SecurityKeysAction()
         data object DismissDeleteConfirm : SecurityKeysAction()

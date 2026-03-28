@@ -154,6 +154,9 @@ class OrganizationPoliciesViewModel @Inject constructor(
     
     private fun handleTogglePolicy(action: OrganizationPoliciesAction.TogglePolicy) {
         viewModelScope.launch {
+            // 保存当前状态以便失败时恢复
+            val currentViewState = stateFlow.value.viewState
+            
             mutableStateFlow.update {
                 it.copy(
                     dialogState = OrganizationPoliciesState.DialogState.Loading(
@@ -187,8 +190,10 @@ class OrganizationPoliciesViewModel @Inject constructor(
                     }
                 }
                 .onFailure { error ->
+                    // 失败时恢复原来的状态并显示错误
                     mutableStateFlow.update {
                         it.copy(
+                            viewState = currentViewState,
                             dialogState = OrganizationPoliciesState.DialogState.Error(
                                 message = error.message?.asText()
                                     ?: BitwardenString.an_error_has_occurred.asText(),
