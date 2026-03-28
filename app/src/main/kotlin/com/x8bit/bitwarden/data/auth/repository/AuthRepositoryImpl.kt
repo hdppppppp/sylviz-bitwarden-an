@@ -1457,9 +1457,13 @@ class AuthRepositoryImpl(
                     }
                 },
                 // Vaultwarden does not support the email verification flow.
-                // Return a null token so the app skips email verification and goes
-                // directly to the complete-registration screen.
-                onFailure = { SendVerificationEmailResult.Success(emailVerificationToken = null) },
+                // Use a placeholder token to skip directly to the complete-registration
+                // screen; the register() call will fall back to the legacy endpoint.
+                onFailure = {
+                    SendVerificationEmailResult.Success(
+                        emailVerificationToken = "VAULTWARDEN_SKIP_EMAIL_VERIFICATION",
+                    )
+                },
             )
 
     override suspend fun validateEmailToken(email: String, token: String): EmailTokenResult {
