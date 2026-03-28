@@ -142,7 +142,7 @@ private fun VaultUnlockedNavBarScaffold(
     onNavigateToAboutPrivilegedApps: () -> Unit,
     onNavigateToPlan: () -> Unit,
 ) {
-    var shouldDimNavBar by rememberSaveable
+    var shouldDimNavBar by rememberSaveable { mutableStateOf(false) }
 
     // This scaffold will host screens that contain top bars while not hosting one itself.
     // We need to ignore the all insets here and let the content screens handle it themselves.
