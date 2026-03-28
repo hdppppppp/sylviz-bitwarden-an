@@ -193,4 +193,6 @@ private val DEFAULT_STATE = AboutState(
     isSubmitCrashLogsEnabled = false,
     shouldShowCrashLogsButton = true,
     copyrightInfo = "".asText(),
+    isFlightRecorderEnabled = false,
+    flightRecorderSubtext = null,
 )

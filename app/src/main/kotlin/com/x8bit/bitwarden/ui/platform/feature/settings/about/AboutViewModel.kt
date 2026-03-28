@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.bitwarden.core.data.manager.BuildInfoManager
+import com.bitwarden.data.datasource.disk.model.FlightRecorderDataSet
 import com.bitwarden.data.repository.ServerConfigRepository
 import com.bitwarden.data.repository.util.baseWebVaultUrlOrDefault
 import com.bitwarden.core.data.manager.util.deviceData
@@ -15,6 +16,7 @@ import com.x8bit.bitwarden.data.platform.manager.LogsManager
 import com.x8bit.bitwarden.data.platform.manager.clipboard.BitwardenClipboardManager
 import com.x8bit.bitwarden.data.platform.repository.EnvironmentRepository
 import com.x8bit.bitwarden.data.platform.repository.SettingsRepository
+import com.x8bit.bitwarden.ui.platform.feature.settings.about.util.getStopsLoggingStringForActiveLog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -44,6 +46,7 @@ class AboutViewModel @Inject constructor(
 ) : BaseViewModel<AboutState, AboutEvent, AboutAction>(
     initialState = savedStateHandle[KEY_STATE] ?: run {
         val serverData = serverConfigRepository.serverConfigStateFlow.value?.serverData
+        val flightRecorderData = settingsRepository.flightRecorderData
         AboutState(
             version = "Version: ${buildInfoManager.versionData}".asText(),
             sdkVersion = "\uD83E\uDD80 SDK: ${buildInfoManager.sdkData}".asText(),
@@ -61,6 +64,8 @@ class AboutViewModel @Inject constructor(
             isSubmitCrashLogsEnabled = logsManager.isEnabled,
             shouldShowCrashLogsButton = !buildInfoManager.isFdroid,
             copyrightInfo = "© Bitwarden Inc. 2015-${Year.now(clock).value}".asText(),
+            isFlightRecorderEnabled = flightRecorderData.activeFlightRecorderData != null,
+            flightRecorderSubtext = flightRecorderData.getStopsLoggingStringForActiveLog(clock),
         )
     },
 ) {
@@ -136,6 +141,8 @@ data class AboutState(
     val isSubmitCrashLogsEnabled: Boolean,
     val shouldShowCrashLogsButton: Boolean,
     val copyrightInfo: Text,
+    val isFlightRecorderEnabled: Boolean,
+    val flightRecorderSubtext: Text?,
 ) : Parcelable
 
 /**

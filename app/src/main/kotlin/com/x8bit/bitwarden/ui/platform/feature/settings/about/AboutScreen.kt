@@ -244,6 +244,8 @@ private fun AboutScreenContent_preview() {
                 isSubmitCrashLogsEnabled = false,
                 copyrightInfo = "".asText(),
                 shouldShowCrashLogsButton = true,
+                isFlightRecorderEnabled = false,
+                flightRecorderSubtext = null,
             ),
             onHelpCenterClick = {},
             onPrivacyPolicyClick = {},
