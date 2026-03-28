@@ -9,4 +9,8 @@ import com.bitwarden.ui.util.asText
  * Returns a human-readable display label for the given [Environment.Type].
  */
 val Environment.Type.displayLabel: Text
-    get() = BitwardenString.self_hosted.asText()
+    get() = when (this) {
+        Environment.Type.US -> Environment.Us.label.asText()
+        Environment.Type.EU -> Environment.Eu.label.asText()
+        Environment.Type.SELF_HOSTED -> BitwardenString.self_hosted.asText()
+    }

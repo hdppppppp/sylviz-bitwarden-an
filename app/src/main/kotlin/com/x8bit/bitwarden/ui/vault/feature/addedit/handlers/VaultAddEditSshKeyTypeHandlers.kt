@@ -13,6 +13,9 @@ import com.x8bit.bitwarden.ui.vault.feature.addedit.VaultAddEditViewModel
  * @property onPrivateKeyVisibilityChange Handler for toggling the visibility of the private key.
  */
 data class VaultAddEditSshKeyTypeHandlers(
+    val onPublicKeyTextChange: (String) -> Unit,
+    val onPrivateKeyTextChange: (String) -> Unit,
+    val onFingerprintTextChange: (String) -> Unit,
     val onPrivateKeyVisibilityChange: (Boolean) -> Unit,
 ) {
     @Suppress("UndocumentedPublicClass")
@@ -25,7 +28,27 @@ data class VaultAddEditSshKeyTypeHandlers(
          */
         fun create(viewModel: VaultAddEditViewModel): VaultAddEditSshKeyTypeHandlers =
             VaultAddEditSshKeyTypeHandlers(
-
+                onPublicKeyTextChange = {
+                    viewModel.trySendAction(
+                        VaultAddEditAction.ItemType.SshKeyType.PublicKeyTextChange(
+                            text = it,
+                        ),
+                    )
+                },
+                onPrivateKeyTextChange = {
+                    viewModel.trySendAction(
+                        VaultAddEditAction.ItemType.SshKeyType.PrivateKeyTextChange(
+                            text = it,
+                        ),
+                    )
+                },
+                onFingerprintTextChange = {
+                    viewModel.trySendAction(
+                        VaultAddEditAction.ItemType.SshKeyType.FingerprintTextChange(
+                            text = it,
+                        ),
+                    )
+                },
                 onPrivateKeyVisibilityChange = {
                     viewModel.trySendAction(
                         VaultAddEditAction.ItemType.SshKeyType.PrivateKeyVisibilityChange(

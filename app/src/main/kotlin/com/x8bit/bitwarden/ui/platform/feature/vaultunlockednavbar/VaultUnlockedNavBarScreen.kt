@@ -64,8 +64,6 @@ fun VaultUnlockedNavBarScreen(
     onNavigateToSetupUnlockScreen: () -> Unit,
     onNavigateToSetupAutoFillScreen: () -> Unit,
     onNavigateToSetupBrowserAutofill: () -> Unit,
-    onNavigateToFlightRecorder: () -> Unit,
-    onNavigateToRecordedLogs: () -> Unit,
     onNavigateToImportLogins: () -> Unit,
     onNavigateToAddFolderScreen: (selectedFolderId: String?) -> Unit,
     onNavigateToAboutPrivilegedApps: () -> Unit,
@@ -107,8 +105,6 @@ fun VaultUnlockedNavBarScreen(
         onNavigateToSetupBrowserAutofill = onNavigateToSetupBrowserAutofill,
         onNavigateToImportLogins = onNavigateToImportLogins,
         onNavigateToAddFolderScreen = onNavigateToAddFolderScreen,
-        onNavigateToFlightRecorder = onNavigateToFlightRecorder,
-        onNavigateToRecordedLogs = onNavigateToRecordedLogs,
         onNavigateToAboutPrivilegedApps = onNavigateToAboutPrivilegedApps,
         onNavigateToPlan = onNavigateToPlan,
     )
@@ -141,14 +137,12 @@ private fun VaultUnlockedNavBarScaffold(
     onNavigateToSetupUnlockScreen: () -> Unit,
     onNavigateToSetupAutoFillScreen: () -> Unit,
     onNavigateToSetupBrowserAutofill: () -> Unit,
-    onNavigateToFlightRecorder: () -> Unit,
-    onNavigateToRecordedLogs: () -> Unit,
     onNavigateToImportLogins: () -> Unit,
     onNavigateToAddFolderScreen: (selectedFolderId: String?) -> Unit,
     onNavigateToAboutPrivilegedApps: () -> Unit,
     onNavigateToPlan: () -> Unit,
 ) {
-    var shouldDimNavBar by rememberSaveable { mutableStateOf(value = false) }
+    var shouldDimNavBar by rememberSaveable
 
     // This scaffold will host screens that contain top bars while not hosting one itself.
     // We need to ignore the all insets here and let the content screens handle it themselves.
@@ -228,8 +222,6 @@ private fun VaultUnlockedNavBarScaffold(
                 onNavigateToSetupBrowserAutofill = onNavigateToSetupBrowserAutofill,
                 onNavigateToImportLogins = onNavigateToImportLogins,
                 onNavigateToImportItems = { navController.navigateToImportItemsScreen() },
-                onNavigateToFlightRecorder = onNavigateToFlightRecorder,
-                onNavigateToRecordedLogs = onNavigateToRecordedLogs,
                 onNavigateToAboutPrivilegedApps = onNavigateToAboutPrivilegedApps,
             )
         }

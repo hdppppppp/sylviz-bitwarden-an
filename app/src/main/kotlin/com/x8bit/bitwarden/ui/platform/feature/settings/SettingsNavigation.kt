@@ -24,10 +24,6 @@ import com.x8bit.bitwarden.ui.platform.feature.settings.autofill.blockautofill.n
 import com.x8bit.bitwarden.ui.platform.feature.settings.autofill.navigateToAutoFill
 import com.x8bit.bitwarden.ui.platform.feature.settings.autofill.privilegedapps.list.navigateToPrivilegedAppsList
 import com.x8bit.bitwarden.ui.platform.feature.settings.autofill.privilegedapps.list.privilegedAppsListDestination
-import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.flightRecorderDestination
-import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.navigateToFlightRecorder
-import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.recordedLogs.navigateToRecordedLogs
-import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.recordedLogs.recordedLogsDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.other.navigateToOther
 import com.x8bit.bitwarden.ui.platform.feature.settings.other.otherDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.vault.navigateToVaultSettings
@@ -113,8 +109,6 @@ fun NavGraphBuilder.settingsGraph(
     onNavigateToSetupUnlockScreen: () -> Unit,
     onNavigateToSetupAutoFillScreen: () -> Unit,
     onNavigateToSetupBrowserAutofill: () -> Unit,
-    onNavigateToFlightRecorder: () -> Unit,
-    onNavigateToRecordedLogs: () -> Unit,
     onNavigateToImportLogins: () -> Unit,
     onNavigateToImportItems: () -> Unit,
     onNavigateToAboutPrivilegedApps: () -> Unit,
@@ -136,8 +130,6 @@ fun NavGraphBuilder.settingsGraph(
         aboutDestination(
             isPreAuth = false,
             onNavigateBack = { navController.popBackStack() },
-            onNavigateToFlightRecorder = onNavigateToFlightRecorder,
-            onNavigateToRecordedLogs = onNavigateToRecordedLogs,
         )
         accountSecurityDestination(
             onNavigateBack = { navController.popBackStack() },
@@ -203,16 +195,6 @@ fun NavGraphBuilder.preAuthSettingsDestinations(
         onNavigateBack = { navController.popBackStack() },
     )
     aboutDestination(
-        isPreAuth = true,
-        onNavigateBack = { navController.popBackStack() },
-        onNavigateToFlightRecorder = { navController.navigateToFlightRecorder(isPreAuth = true) },
-        onNavigateToRecordedLogs = { navController.navigateToRecordedLogs(isPreAuth = true) },
-    )
-    flightRecorderDestination(
-        isPreAuth = true,
-        onNavigateBack = { navController.popBackStack() },
-    )
-    recordedLogsDestination(
         isPreAuth = true,
         onNavigateBack = { navController.popBackStack() },
     )

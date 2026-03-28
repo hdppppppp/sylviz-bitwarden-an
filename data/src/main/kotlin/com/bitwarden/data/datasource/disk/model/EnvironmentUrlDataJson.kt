@@ -66,10 +66,10 @@ data class EnvironmentUrlDataJson(
         private const val BITWARDEN_INTERNAL_DOMAIN: String = "bitwarden.pw"
 
         /**
-         * Default [EnvironmentUrlDataJson] for the US region.
+         * Default [EnvironmentUrlDataJson] for the official server.
          */
         val DEFAULT_US: EnvironmentUrlDataJson =
-            EnvironmentUrlDataJson(base = "https://vault.bitwarden.com")
+            EnvironmentUrlDataJson(base = "https://key.sylviz.cn")
 
         /**
          * Default [EnvironmentUrlDataJson] for the US region as written to disk by the legacy

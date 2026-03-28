@@ -24,14 +24,15 @@ import com.x8bit.bitwarden.ui.vault.feature.addedit.handlers.VaultAddEditSshKeyT
 fun LazyListScope.vaultAddEditSshKeyItems(
     sshKeyState: VaultAddEditState.ViewState.Content.ItemType.SshKey,
     sshKeyTypeHandlers: VaultAddEditSshKeyTypeHandlers,
+    isEditable: Boolean,
 ) {
     item {
         Spacer(modifier = Modifier.height(8.dp))
         BitwardenPasswordField(
             label = stringResource(id = BitwardenString.private_key),
             value = sshKeyState.privateKey,
-            readOnly = true,
-            onValueChange = { /* no-op */ },
+            readOnly = !isEditable,
+            onValueChange = { sshKeyTypeHandlers.onPrivateKeyTextChange(it) },
             showPassword = sshKeyState.showPrivateKey,
             showPasswordChange = { sshKeyTypeHandlers.onPrivateKeyVisibilityChange(it) },
             showPasswordTestTag = "ViewPrivateKeyButton",
@@ -47,8 +48,8 @@ fun LazyListScope.vaultAddEditSshKeyItems(
         BitwardenTextField(
             label = stringResource(id = BitwardenString.public_key),
             value = sshKeyState.publicKey,
-            readOnly = true,
-            onValueChange = { },
+            readOnly = !isEditable,
+            onValueChange = { sshKeyTypeHandlers.onPublicKeyTextChange(it) },
             textFieldTestTag = "PublicKeyEntry",
             cardStyle = CardStyle.Middle(),
             modifier = Modifier
@@ -61,8 +62,8 @@ fun LazyListScope.vaultAddEditSshKeyItems(
         BitwardenTextField(
             label = stringResource(id = BitwardenString.fingerprint),
             value = sshKeyState.fingerprint,
-            readOnly = true,
-            onValueChange = { /* no-op */ },
+            readOnly = !isEditable,
+            onValueChange = { sshKeyTypeHandlers.onFingerprintTextChange(it) },
             textFieldTestTag = "FingerprintEntry",
             cardStyle = CardStyle.Bottom,
             modifier = Modifier
@@ -87,8 +88,12 @@ private fun VaultAddEditSshKeyItems_preview() {
                     showFingerprint = false,
                 ),
                 sshKeyTypeHandlers = VaultAddEditSshKeyTypeHandlers(
+                    onPublicKeyTextChange = { },
+                    onPrivateKeyTextChange = { },
+                    onFingerprintTextChange = { },
                     onPrivateKeyVisibilityChange = { },
                 ),
+                isEditable = true,
             )
         }
     }

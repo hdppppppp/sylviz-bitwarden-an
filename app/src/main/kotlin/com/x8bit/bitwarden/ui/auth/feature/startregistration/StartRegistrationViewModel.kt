@@ -113,11 +113,16 @@ class StartRegistrationViewModel @Inject constructor(
         sendEvent(StartRegistrationEvent.NavigateToServerSelectionInfo)
     }
 
-    private fun handleEnvironmentTypeSelect(
-        @Suppress("UNUSED_PARAMETER") action: StartRegistrationAction.EnvironmentTypeSelect,
-    ) {
-        // Only self-hosted environment is supported; navigate to configuration screen.
-        sendEvent(StartRegistrationEvent.NavigateToEnvironment)
+    private fun handleEnvironmentTypeSelect(action: StartRegistrationAction.EnvironmentTypeSelect) {
+        val environment = when (action.environmentType) {
+            Type.US -> Environment.Us
+            Type.EU -> Environment.Eu
+            Type.SELF_HOSTED -> {
+                sendEvent(StartRegistrationEvent.NavigateToEnvironment)
+                return
+            }
+        }
+        environmentRepository.environment = environment
     }
 
     private fun handleSnackbarDataReceived(

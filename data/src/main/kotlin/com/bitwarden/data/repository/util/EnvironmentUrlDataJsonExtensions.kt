@@ -197,9 +197,7 @@ fun EnvironmentUrlDataJson.toEnvironmentUrls(): Environment =
 
 /**
  * Converts a nullable [EnvironmentUrlDataJson] to an [Environment], where `null` values default to
- * the self-hosted environment at key.sylviz.cn.
+ * the official server (key.sylviz.cn).
  */
 fun EnvironmentUrlDataJson?.toEnvironmentUrlsOrDefault(): Environment =
-    this?.toEnvironmentUrls() ?: Environment.SelfHosted(
-        environmentUrlData = EnvironmentUrlDataJson(base = "https://key.sylviz.cn"),
-    )
+    this?.toEnvironmentUrls() ?: Environment.Us

@@ -134,22 +134,10 @@ fun NavGraphBuilder.vaultUnlockedGraph(
                     parentFolderName = it,
                 )
             },
-            onNavigateToFlightRecorder = {
-                navController.navigateToFlightRecorder(isPreAuth = false)
-            },
-            onNavigateToRecordedLogs = { navController.navigateToRecordedLogs(isPreAuth = false) },
             onNavigateToAboutPrivilegedApps = {
                 navController.navigateToAboutPrivilegedAppsScreen()
             },
             onNavigateToPlan = { navController.navigateToPlanModal() },
-        )
-        flightRecorderDestination(
-            isPreAuth = false,
-            onNavigateBack = { navController.popBackStack() },
-        )
-        recordedLogsDestination(
-            isPreAuth = false,
-            onNavigateBack = { navController.popBackStack() },
         )
         aboutPrivilegedAppsDestination(
             onNavigateBack = { navController.popBackStack() },

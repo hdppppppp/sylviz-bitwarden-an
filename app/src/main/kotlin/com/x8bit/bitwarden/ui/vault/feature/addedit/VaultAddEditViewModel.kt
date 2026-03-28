@@ -1615,10 +1615,40 @@ class VaultAddEditViewModel @Inject constructor(
 
     private fun handleSshKeyTypeActions(action: VaultAddEditAction.ItemType.SshKeyType) {
         when (action) {
+            is VaultAddEditAction.ItemType.SshKeyType.PublicKeyTextChange -> {
+                handlePublicKeyTextChange(action)
+            }
+
+            is VaultAddEditAction.ItemType.SshKeyType.PrivateKeyTextChange -> {
+                handlePrivateKeyTextChange(action)
+            }
+
+            is VaultAddEditAction.ItemType.SshKeyType.FingerprintTextChange -> {
+                handleFingerprintTextChange(action)
+            }
+
             is VaultAddEditAction.ItemType.SshKeyType.PrivateKeyVisibilityChange -> {
                 handlePrivateKeyVisibilityChange(action)
             }
         }
+    }
+
+    private fun handlePublicKeyTextChange(
+        action: VaultAddEditAction.ItemType.SshKeyType.PublicKeyTextChange,
+    ) {
+        updateSshKeyContent { it.copy(publicKey = action.text) }
+    }
+
+    private fun handlePrivateKeyTextChange(
+        action: VaultAddEditAction.ItemType.SshKeyType.PrivateKeyTextChange,
+    ) {
+        updateSshKeyContent { it.copy(privateKey = action.text) }
+    }
+
+    private fun handleFingerprintTextChange(
+        action: VaultAddEditAction.ItemType.SshKeyType.FingerprintTextChange,
+    ) {
+        updateSshKeyContent { it.copy(fingerprint = action.text) }
     }
 
     private fun handlePrivateKeyVisibilityChange(
@@ -3704,6 +3734,21 @@ sealed class VaultAddEditAction {
          * Represents actions specific to the SSH Key type.
          */
         sealed class SshKeyType : ItemType() {
+
+            /**
+             * 公钥输入变更。
+             */
+            data class PublicKeyTextChange(val text: String) : SshKeyType()
+
+            /**
+             * 私钥输入变更。
+             */
+            data class PrivateKeyTextChange(val text: String) : SshKeyType()
+
+            /**
+             * 指纹输入变更。
+             */
+            data class FingerprintTextChange(val text: String) : SshKeyType()
 
             /**
              * Fired when the private key's visibility has changed.

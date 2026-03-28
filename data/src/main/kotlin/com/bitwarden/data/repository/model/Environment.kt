@@ -31,7 +31,7 @@ sealed class Environment {
         override val environmentUrlData: EnvironmentUrlDataJson
             get() = EnvironmentUrlDataJson.DEFAULT_US
         override val label: String
-            get() = "bitwarden.com"
+            get() = "官方"
     }
 
     /**

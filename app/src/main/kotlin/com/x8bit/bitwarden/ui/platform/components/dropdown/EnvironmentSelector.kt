@@ -57,7 +57,7 @@ fun EnvironmentSelector(
     modifier: Modifier = Modifier,
     isHelpEnabled: Boolean = true,
 ) {
-    val options = arrayOf(Environment.Type.SELF_HOSTED)
+    val options = arrayOf(Environment.Type.US, Environment.Type.SELF_HOSTED)
     var shouldShowDialog by rememberSaveable { mutableStateOf(false) }
 
     Row(

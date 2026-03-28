@@ -30,24 +30,14 @@ sealed class SettingsAboutRoute {
 fun NavGraphBuilder.aboutDestination(
     isPreAuth: Boolean,
     onNavigateBack: () -> Unit,
-    onNavigateToFlightRecorder: () -> Unit,
-    onNavigateToRecordedLogs: () -> Unit,
 ) {
     if (isPreAuth) {
         composableWithPushTransitions<SettingsAboutRoute.PreAuth> {
-            AboutScreen(
-                onNavigateBack = onNavigateBack,
-                onNavigateToFlightRecorder = onNavigateToFlightRecorder,
-                onNavigateToRecordedLogs = onNavigateToRecordedLogs,
-            )
+            AboutScreen(onNavigateBack = onNavigateBack)
         }
     } else {
         composableWithPushTransitions<SettingsAboutRoute.Standard> {
-            AboutScreen(
-                onNavigateBack = onNavigateBack,
-                onNavigateToFlightRecorder = onNavigateToFlightRecorder,
-                onNavigateToRecordedLogs = onNavigateToRecordedLogs,
-            )
+            AboutScreen(onNavigateBack = onNavigateBack)
         }
     }
 }

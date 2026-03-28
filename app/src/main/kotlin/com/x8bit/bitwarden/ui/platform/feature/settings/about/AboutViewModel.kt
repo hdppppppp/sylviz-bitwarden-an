@@ -4,7 +4,6 @@ import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.bitwarden.core.data.manager.BuildInfoManager
-import com.bitwarden.data.datasource.disk.model.FlightRecorderDataSet
 import com.bitwarden.data.repository.ServerConfigRepository
 import com.bitwarden.data.repository.util.baseWebVaultUrlOrDefault
 import com.bitwarden.core.data.manager.util.deviceData
@@ -16,7 +15,6 @@ import com.x8bit.bitwarden.data.platform.manager.LogsManager
 import com.x8bit.bitwarden.data.platform.manager.clipboard.BitwardenClipboardManager
 import com.x8bit.bitwarden.data.platform.repository.EnvironmentRepository
 import com.x8bit.bitwarden.data.platform.repository.SettingsRepository
-import com.x8bit.bitwarden.ui.platform.feature.settings.about.util.getStopsLoggingStringForActiveLog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -62,12 +60,6 @@ class AboutViewModel @Inject constructor(
             ciData = buildInfoManager.ciBuildInfo?.let { "\n$it" }.orEmpty().asText(),
             isSubmitCrashLogsEnabled = logsManager.isEnabled,
             shouldShowCrashLogsButton = !buildInfoManager.isFdroid,
-            isFlightRecorderEnabled = settingsRepository
-                .flightRecorderData
-                .hasActiveFlightRecorderData,
-            flightRecorderSubtext = settingsRepository
-                .flightRecorderData
-                .getStopsLoggingStringForActiveLog(clock = clock),
             copyrightInfo = "© Bitwarden Inc. 2015-${Year.now(clock).value}".asText(),
         )
     },
@@ -75,11 +67,6 @@ class AboutViewModel @Inject constructor(
     init {
         stateFlow
             .onEach { savedStateHandle[KEY_STATE] = it }
-            .launchIn(viewModelScope)
-        settingsRepository
-            .flightRecorderDataFlow
-            .map { AboutAction.Internal.FlightRecorderDataReceive(data = it) }
-            .onEach(::sendAction)
             .launchIn(viewModelScope)
     }
 
@@ -91,31 +78,6 @@ class AboutViewModel @Inject constructor(
         is AboutAction.SubmitCrashLogsClick -> handleSubmitCrashLogsClick(action)
         AboutAction.VersionClick -> handleVersionClick()
         AboutAction.WebVaultClick -> handleWebVaultClick()
-        is AboutAction.FlightRecorderCheckedChange -> handleFlightRecorderCheckedChange(action)
-        AboutAction.FlightRecorderTooltipClick -> handleFlightRecorderTooltipClick()
-        AboutAction.ViewRecordedLogsClick -> handleViewRecordedLogsClick()
-        is AboutAction.Internal -> handleInternalAction(action)
-    }
-
-    private fun handleInternalAction(action: AboutAction.Internal) {
-        when (action) {
-            is AboutAction.Internal.FlightRecorderDataReceive -> {
-                handleFlightRecorderDataReceive(action)
-            }
-        }
-    }
-
-    private fun handleFlightRecorderDataReceive(
-        action: AboutAction.Internal.FlightRecorderDataReceive,
-    ) {
-        mutableStateFlow.update {
-            it.copy(
-                flightRecorderSubtext = action
-                    .data
-                    .getStopsLoggingStringForActiveLog(clock = clock),
-                isFlightRecorderEnabled = action.data.hasActiveFlightRecorderData,
-            )
-        }
     }
 
     private fun handleBackClick() {
@@ -164,21 +126,6 @@ class AboutViewModel @Inject constructor(
         )
     }
 
-    private fun handleFlightRecorderCheckedChange(action: AboutAction.FlightRecorderCheckedChange) {
-        if (action.isEnabled) {
-            sendEvent(AboutEvent.NavigateToFlightRecorder)
-        } else {
-            settingsRepository.endFlightRecorder()
-        }
-    }
-
-    private fun handleFlightRecorderTooltipClick() {
-        sendEvent(AboutEvent.NavigateToFlightRecorderHelp)
-    }
-
-    private fun handleViewRecordedLogsClick() {
-        sendEvent(AboutEvent.NavigateToRecordedLogs)
-    }
 }
 
 /**
@@ -193,8 +140,6 @@ data class AboutState(
     val ciData: Text,
     val isSubmitCrashLogsEnabled: Boolean,
     val shouldShowCrashLogsButton: Boolean,
-    val isFlightRecorderEnabled: Boolean,
-    val flightRecorderSubtext: Text?,
     val copyrightInfo: Text,
 ) : Parcelable
 
@@ -206,21 +151,6 @@ sealed class AboutEvent {
      * Navigate back.
      */
     data object NavigateBack : AboutEvent()
-
-    /**
-     * Navigates to the flight recorder configuration.
-     */
-    data object NavigateToFlightRecorder : AboutEvent()
-
-    /**
-     * Navigates to the flight recorder help info.
-     */
-    data object NavigateToFlightRecorderHelp : AboutEvent()
-
-    /**
-     * Navigates to the flight recorder log history.
-     */
-    data object NavigateToRecordedLogs : AboutEvent()
 
     /**
      * Navigates to the help center.
@@ -284,30 +214,4 @@ sealed class AboutAction {
      */
     data object WebVaultClick : AboutAction()
 
-    /**
-     * User clicked the flight recorder check box.
-     */
-    data class FlightRecorderCheckedChange(
-        val isEnabled: Boolean,
-    ) : AboutAction()
-
-    /**
-     * User clicked the flight recorder tooltip.
-     */
-    data object FlightRecorderTooltipClick : AboutAction()
-
-    /**
-     * User clicked the view recorded logs row.
-     */
-    data object ViewRecordedLogsClick : AboutAction()
-
-    /**
-     * Actions for internal use by the ViewModel.
-     */
-    sealed class Internal : AboutAction() {
-        /**
-         * Indicates that the flight recorder data has changed.
-         */
-        data class FlightRecorderDataReceive(val data: FlightRecorderDataSet) : Internal()
-    }
 }

@@ -258,6 +258,7 @@ fun CoachMarkScope<AddEditItemCoachMark>.VaultAddEditContent(
                 vaultAddEditSshKeyItems(
                     sshKeyState = state.type,
                     sshKeyTypeHandlers = sshKeyItemTypeHandlers,
+                    isEditable = isAddItemMode || state.common.originalCipher?.edit == true,
                 )
             }
         }

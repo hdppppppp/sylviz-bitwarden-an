@@ -225,11 +225,16 @@ class LandingViewModel @Inject constructor(
         mutableStateFlow.update { it.copy(isRememberEmailEnabled = action.isChecked) }
     }
 
-    private fun handleEnvironmentTypeSelect(
-        @Suppress("UNUSED_PARAMETER") action: LandingAction.EnvironmentTypeSelect,
-    ) {
-        // Only self-hosted environment is supported; navigate to configuration screen.
-        sendEvent(LandingEvent.NavigateToEnvironment)
+    private fun handleEnvironmentTypeSelect(action: LandingAction.EnvironmentTypeSelect) {
+        val environment = when (action.environmentType) {
+            Environment.Type.US -> Environment.Us
+            Environment.Type.EU -> Environment.Eu
+            Environment.Type.SELF_HOSTED -> {
+                sendEvent(LandingEvent.NavigateToEnvironment)
+                return
+            }
+        }
+        environmentRepository.environment = environment
     }
 
     private fun handleUpdatedEnvironmentReceive(
