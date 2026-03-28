@@ -17,5 +17,5 @@ internal interface SyncApi {
     suspend fun sync(): NetworkResult<SyncResponseJson>
 
     @GET("accounts/revision-date")
-    suspend fun getAccountRevisionDateMillis(): NetworkResult<Long>
+    suspend fun getAccountRevisionDateMillis(): NetworkResult<String>
 }

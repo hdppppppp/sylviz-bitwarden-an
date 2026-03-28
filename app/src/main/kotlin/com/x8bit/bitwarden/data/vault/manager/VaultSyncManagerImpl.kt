@@ -294,8 +294,9 @@ class VaultSyncManagerImpl(
                         }
                     },
                     onFailure = {
-                        updateVaultStateFlowsToError(throwable = it)
-                        return SyncVaultDataResult.Error(throwable = it)
+                        // Vaultwarden or other self-hosted servers may not support this
+                        // endpoint or may return an unexpected format. Fall through to a
+                        // full sync instead of surfacing an error.
                     },
                 )
             }

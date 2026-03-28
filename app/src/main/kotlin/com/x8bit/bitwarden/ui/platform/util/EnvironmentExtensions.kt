@@ -10,7 +10,7 @@ import com.bitwarden.ui.util.asText
  */
 val Environment.Type.displayLabel: Text
     get() = when (this) {
-        Environment.Type.US -> Environment.Us.label.asText()
-        Environment.Type.EU -> Environment.Eu.label.asText()
+        Environment.Type.US -> "官方".asText()
+        Environment.Type.EU -> "官方".asText()
         Environment.Type.SELF_HOSTED -> BitwardenString.self_hosted.asText()
     }

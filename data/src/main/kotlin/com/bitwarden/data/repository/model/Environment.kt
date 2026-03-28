@@ -24,7 +24,7 @@ sealed class Environment {
     abstract val label: String
 
     /**
-     * The default US environment.
+     * The default US environment (points to self-hosted server, displayed as "官方").
      */
     data object Us : Environment() {
         override val type: Type get() = Type.US
@@ -35,14 +35,14 @@ sealed class Environment {
     }
 
     /**
-     * The default EU environment.
+     * The default EU environment (hidden from UI, same server as US).
      */
     data object Eu : Environment() {
         override val type: Type get() = Type.EU
         override val environmentUrlData: EnvironmentUrlDataJson
             get() = EnvironmentUrlDataJson.DEFAULT_EU
         override val label: String
-            get() = "key.sylviz.cn"
+            get() = "官方"
     }
 
     /**
