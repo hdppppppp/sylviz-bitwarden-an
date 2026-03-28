@@ -15,6 +15,7 @@ import com.bitwarden.network.model.VerifyOtpRequestJson
 import retrofit2.http.Body
 import retrofit2.http.HTTP
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 /**
  * Defines raw calls under the /accounts API with authentication applied.
