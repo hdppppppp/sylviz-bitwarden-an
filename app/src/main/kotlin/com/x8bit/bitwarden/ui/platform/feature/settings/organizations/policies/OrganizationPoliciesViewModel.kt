@@ -7,6 +7,7 @@ import com.bitwarden.ui.platform.base.BaseViewModel
 import com.bitwarden.ui.platform.resource.BitwardenString
 import com.bitwarden.ui.util.Text
 import com.bitwarden.ui.util.asText
+import com.x8bit.bitwarden.data.organization.repository.OrganizationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -34,6 +35,9 @@ data class OrganizationPoliciesState(
         
         @Parcelize
         data object Empty : ViewState()
+        
+        @Parcelize
+        data object Error : ViewState()
     }
     
     sealed class DialogState : Parcelable {
@@ -60,10 +64,12 @@ sealed class OrganizationPoliciesAction {
     data object BackClick : OrganizationPoliciesAction()
     data object DismissDialog : OrganizationPoliciesAction()
     data class TogglePolicy(val type: Int, val enabled: Boolean) : OrganizationPoliciesAction()
+    data object RetryClick : OrganizationPoliciesAction()
 }
 
 @HiltViewModel
 class OrganizationPoliciesViewModel @Inject constructor(
+    private val organizationRepository: OrganizationRepository,
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel<OrganizationPoliciesState, OrganizationPoliciesEvent, OrganizationPoliciesAction>(
     initialState = OrganizationPoliciesState(
@@ -79,31 +85,53 @@ class OrganizationPoliciesViewModel @Inject constructor(
     
     private fun loadPolicies() {
         viewModelScope.launch {
-            // TODO: 调用 organizationAdminService.getOrganizationPolicies
-            // 暂时使用预定义的策略列表
-            val defaultPolicies = persistentListOf(
-                OrganizationPoliciesState.PolicyItem(
-                    type = 0,
-                    name = BitwardenString.two_step_login.asText(),
-                    enabled = false,
-                ),
-                OrganizationPoliciesState.PolicyItem(
-                    type = 1,
-                    name = BitwardenString.master_password.asText(),
-                    enabled = false,
-                ),
-                OrganizationPoliciesState.PolicyItem(
-                    type = 2,
-                    name = BitwardenString.password_generator.asText(),
-                    enabled = false,
-                ),
-            )
-            
             mutableStateFlow.update {
-                it.copy(
-                    viewState = OrganizationPoliciesState.ViewState.Content(defaultPolicies),
-                )
+                it.copy(viewState = OrganizationPoliciesState.ViewState.Loading)
             }
+            
+            organizationRepository.getOrganizationPolicies(
+                organizationId = stateFlow.value.organizationId,
+            )
+                .onSuccess { policies ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            viewState = if (policies.isEmpty()) {
+                                OrganizationPoliciesState.ViewState.Empty
+                            } else {
+                                OrganizationPoliciesState.ViewState.Content(
+                                    policies = policies.map { json ->
+                                        OrganizationPoliciesState.PolicyItem(
+                                            type = json.type,
+                                            name = getPolicyName(json.type),
+                                            enabled = json.enabled,
+                                        )
+                                    }.toImmutableList()
+                                )
+                            }
+                        )
+                    }
+                }
+                .onFailure {
+                    mutableStateFlow.update {
+                        it.copy(viewState = OrganizationPoliciesState.ViewState.Error)
+                    }
+                }
+        }
+    }
+    
+    private fun getPolicyName(type: Int): Text {
+        return when (type) {
+            0 -> BitwardenString.two_step_login.asText()
+            1 -> BitwardenString.master_password.asText()
+            2 -> BitwardenString.password_generator.asText()
+            3 -> BitwardenString.single_org.asText()
+            4 -> BitwardenString.require_sso.asText()
+            5 -> BitwardenString.personal_ownership.asText()
+            6 -> BitwardenString.send_options.asText()
+            7 -> BitwardenString.reset_password.asText()
+            8 -> BitwardenString.max_vault_timeout.asText()
+            9 -> BitwardenString.disable_personal_vault_export.asText()
+            else -> BitwardenString.policies.asText()
         }
     }
     
@@ -112,6 +140,7 @@ class OrganizationPoliciesViewModel @Inject constructor(
             is OrganizationPoliciesAction.BackClick -> handleBackClick()
             is OrganizationPoliciesAction.DismissDialog -> handleDismissDialog()
             is OrganizationPoliciesAction.TogglePolicy -> handleTogglePolicy(action)
+            is OrganizationPoliciesAction.RetryClick -> loadPolicies()
         }
     }
     
@@ -125,23 +154,48 @@ class OrganizationPoliciesViewModel @Inject constructor(
     
     private fun handleTogglePolicy(action: OrganizationPoliciesAction.TogglePolicy) {
         viewModelScope.launch {
-            // TODO: 调用 organizationAdminService.updateOrganizationPolicy
-            val currentState = state.viewState
-            if (currentState is OrganizationPoliciesState.ViewState.Content) {
-                val updatedPolicies = currentState.policies.map { policy ->
-                    if (policy.type == action.type) {
-                        policy.copy(enabled = action.enabled)
-                    } else {
-                        policy
-                    }
-                }.toImmutableList()
-                
-                mutableStateFlow.update {
-                    it.copy(
-                        viewState = OrganizationPoliciesState.ViewState.Content(updatedPolicies),
-                    )
-                }
+            mutableStateFlow.update {
+                it.copy(
+                    dialogState = OrganizationPoliciesState.DialogState.Loading(
+                        message = BitwardenString.saving.asText(),
+                    ),
+                )
             }
+            
+            organizationRepository.updateOrganizationPolicy(
+                organizationId = stateFlow.value.organizationId,
+                policyType = action.type,
+                enabled = action.enabled,
+            )
+                .onSuccess { updatedPolicy ->
+                    val currentState = stateFlow.value.viewState
+                    if (currentState is OrganizationPoliciesState.ViewState.Content) {
+                        val updatedPolicies = currentState.policies.map { policy ->
+                            if (policy.type == updatedPolicy.type) {
+                                policy.copy(enabled = updatedPolicy.enabled)
+                            } else {
+                                policy
+                            }
+                        }.toImmutableList()
+                        
+                        mutableStateFlow.update {
+                            it.copy(
+                                viewState = OrganizationPoliciesState.ViewState.Content(updatedPolicies),
+                                dialogState = null,
+                            )
+                        }
+                    }
+                }
+                .onFailure { error ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            dialogState = OrganizationPoliciesState.DialogState.Error(
+                                message = error.message?.asText()
+                                    ?: BitwardenString.an_error_has_occurred.asText(),
+                            ),
+                        )
+                    }
+                }
         }
     }
 }

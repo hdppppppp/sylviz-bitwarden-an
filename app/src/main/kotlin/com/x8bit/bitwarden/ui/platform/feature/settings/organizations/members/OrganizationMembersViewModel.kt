@@ -9,6 +9,7 @@ import com.bitwarden.ui.platform.resource.BitwardenString
 import com.bitwarden.ui.util.Text
 import com.bitwarden.ui.util.asText
 import com.x8bit.bitwarden.data.auth.repository.AuthRepository
+import com.x8bit.bitwarden.data.organization.repository.OrganizationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -39,6 +40,9 @@ data class OrganizationMembersState(
         
         @Parcelize
         data object Empty : ViewState()
+        
+        @Parcelize
+        data object Error : ViewState()
     }
     
     sealed class DialogState : Parcelable {
@@ -70,7 +74,9 @@ sealed class OrganizationMembersAction {
     data object InviteClick : OrganizationMembersAction()
     data object DismissDialog : OrganizationMembersAction()
     data class RemoveMemberClick(val memberId: String) : OrganizationMembersAction()
+    data class ConfirmRemoveMember(val memberId: String) : OrganizationMembersAction()
     data class MembersLoaded(val members: List<OrganizationUserDetailsJson>) : OrganizationMembersAction()
+    data object RetryClick : OrganizationMembersAction()
 }
 
 /**
@@ -79,6 +85,7 @@ sealed class OrganizationMembersAction {
 @HiltViewModel
 class OrganizationMembersViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val organizationRepository: OrganizationRepository,
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel<OrganizationMembersState, OrganizationMembersEvent, OrganizationMembersAction>(
     initialState = OrganizationMembersState(
@@ -94,13 +101,40 @@ class OrganizationMembersViewModel @Inject constructor(
     
     private fun loadMembers() {
         viewModelScope.launch {
-            // TODO: 调用 organizationManagementService.getOrganizationMembers
-            // 暂时使用空列表
             mutableStateFlow.update {
-                it.copy(
-                    viewState = OrganizationMembersState.ViewState.Empty,
-                )
+                it.copy(viewState = OrganizationMembersState.ViewState.Loading)
             }
+            
+            organizationRepository.getOrganizationMembers(
+                organizationId = stateFlow.value.organizationId,
+                includeCollections = false,
+                includeGroups = false,
+            )
+                .onSuccess { members ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            viewState = if (members.isEmpty()) {
+                                OrganizationMembersState.ViewState.Empty
+                            } else {
+                                OrganizationMembersState.ViewState.Content(
+                                    members = members.map { json ->
+                                        OrganizationMembersState.MemberItem(
+                                            id = json.id,
+                                            email = json.email,
+                                            name = json.name,
+                                            status = json.status,
+                                        )
+                                    }.toImmutableList()
+                                )
+                            }
+                        )
+                    }
+                }
+                .onFailure {
+                    mutableStateFlow.update {
+                        it.copy(viewState = OrganizationMembersState.ViewState.Error)
+                    }
+                }
         }
     }
     
@@ -110,6 +144,8 @@ class OrganizationMembersViewModel @Inject constructor(
             is OrganizationMembersAction.InviteClick -> handleInviteClick()
             is OrganizationMembersAction.DismissDialog -> handleDismissDialog()
             is OrganizationMembersAction.RemoveMemberClick -> handleRemoveMemberClick(action)
+            is OrganizationMembersAction.ConfirmRemoveMember -> handleConfirmRemoveMember(action)
+            is OrganizationMembersAction.RetryClick -> loadMembers()
             is OrganizationMembersAction.MembersLoaded -> handleMembersLoaded(action)
         }
     }
@@ -131,6 +167,37 @@ class OrganizationMembersViewModel @Inject constructor(
             it.copy(
                 dialogState = OrganizationMembersState.DialogState.ConfirmDelete(action.memberId),
             )
+        }
+    }
+    
+    private fun handleConfirmRemoveMember(action: OrganizationMembersAction.ConfirmRemoveMember) {
+        viewModelScope.launch {
+            mutableStateFlow.update {
+                it.copy(
+                    dialogState = OrganizationMembersState.DialogState.Loading(
+                        message = BitwardenString.removing.asText(),
+                    ),
+                )
+            }
+            
+            organizationRepository.removeOrganizationMember(
+                organizationId = stateFlow.value.organizationId,
+                memberId = action.memberId,
+            )
+                .onSuccess {
+                    mutableStateFlow.update { it.copy(dialogState = null) }
+                    loadMembers()
+                }
+                .onFailure { error ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            dialogState = OrganizationMembersState.DialogState.Error(
+                                message = error.message?.asText()
+                                    ?: BitwardenString.an_error_has_occurred.asText(),
+                            ),
+                        )
+                    }
+                }
         }
     }
     

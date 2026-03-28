@@ -7,6 +7,7 @@ import com.bitwarden.ui.platform.base.BaseViewModel
 import com.bitwarden.ui.platform.resource.BitwardenString
 import com.bitwarden.ui.util.Text
 import com.bitwarden.ui.util.asText
+import com.x8bit.bitwarden.data.organization.repository.OrganizationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -37,6 +38,9 @@ data class OrganizationCollectionsState(
         
         @Parcelize
         data object Empty : ViewState()
+        
+        @Parcelize
+        data object Error : ViewState()
     }
     
     sealed class DialogState : Parcelable {
@@ -66,6 +70,8 @@ sealed class OrganizationCollectionsAction {
     data object AddClick : OrganizationCollectionsAction()
     data object DismissDialog : OrganizationCollectionsAction()
     data class DeleteCollectionClick(val collectionId: String) : OrganizationCollectionsAction()
+    data class ConfirmDeleteCollection(val collectionId: String) : OrganizationCollectionsAction()
+    data object RetryClick : OrganizationCollectionsAction()
 }
 
 /**
@@ -73,6 +79,7 @@ sealed class OrganizationCollectionsAction {
  */
 @HiltViewModel
 class OrganizationCollectionsViewModel @Inject constructor(
+    private val organizationRepository: OrganizationRepository,
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel<OrganizationCollectionsState, OrganizationCollectionsEvent, OrganizationCollectionsAction>(
     initialState = OrganizationCollectionsState(
@@ -88,12 +95,36 @@ class OrganizationCollectionsViewModel @Inject constructor(
     
     private fun loadCollections() {
         viewModelScope.launch {
-            // TODO: 调用 organizationManagementService.getOrganizationCollections
             mutableStateFlow.update {
-                it.copy(
-                    viewState = OrganizationCollectionsState.ViewState.Empty,
-                )
+                it.copy(viewState = OrganizationCollectionsState.ViewState.Loading)
             }
+            
+            organizationRepository.getOrganizationCollections(
+                organizationId = stateFlow.value.organizationId,
+            )
+                .onSuccess { collections ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            viewState = if (collections.isEmpty()) {
+                                OrganizationCollectionsState.ViewState.Empty
+                            } else {
+                                OrganizationCollectionsState.ViewState.Content(
+                                    collections = collections.map { json ->
+                                        OrganizationCollectionsState.CollectionItem(
+                                            id = json.id,
+                                            name = json.name,
+                                        )
+                                    }.toImmutableList()
+                                )
+                            }
+                        )
+                    }
+                }
+                .onFailure {
+                    mutableStateFlow.update {
+                        it.copy(viewState = OrganizationCollectionsState.ViewState.Error)
+                    }
+                }
         }
     }
     
@@ -103,6 +134,8 @@ class OrganizationCollectionsViewModel @Inject constructor(
             is OrganizationCollectionsAction.AddClick -> handleAddClick()
             is OrganizationCollectionsAction.DismissDialog -> handleDismissDialog()
             is OrganizationCollectionsAction.DeleteCollectionClick -> handleDeleteCollectionClick(action)
+            is OrganizationCollectionsAction.ConfirmDeleteCollection -> handleConfirmDeleteCollection(action)
+            is OrganizationCollectionsAction.RetryClick -> loadCollections()
         }
     }
     
@@ -123,6 +156,37 @@ class OrganizationCollectionsViewModel @Inject constructor(
             it.copy(
                 dialogState = OrganizationCollectionsState.DialogState.ConfirmDelete(action.collectionId),
             )
+        }
+    }
+    
+    private fun handleConfirmDeleteCollection(action: OrganizationCollectionsAction.ConfirmDeleteCollection) {
+        viewModelScope.launch {
+            mutableStateFlow.update {
+                it.copy(
+                    dialogState = OrganizationCollectionsState.DialogState.Loading(
+                        message = BitwardenString.deleting.asText(),
+                    ),
+                )
+            }
+            
+            organizationRepository.deleteOrganizationCollection(
+                organizationId = stateFlow.value.organizationId,
+                collectionId = action.collectionId,
+            )
+                .onSuccess {
+                    mutableStateFlow.update { it.copy(dialogState = null) }
+                    loadCollections()
+                }
+                .onFailure { error ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            dialogState = OrganizationCollectionsState.DialogState.Error(
+                                message = error.message?.asText()
+                                    ?: BitwardenString.an_error_has_occurred.asText(),
+                            ),
+                        )
+                    }
+                }
         }
     }
 }

@@ -7,6 +7,7 @@ import com.bitwarden.ui.platform.base.BaseViewModel
 import com.bitwarden.ui.platform.resource.BitwardenString
 import com.bitwarden.ui.util.Text
 import com.bitwarden.ui.util.asText
+import com.x8bit.bitwarden.data.organization.repository.OrganizationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -33,6 +34,9 @@ data class OrganizationGroupsState(
         
         @Parcelize
         data object Empty : ViewState()
+        
+        @Parcelize
+        data object Error : ViewState()
     }
     
     sealed class DialogState : Parcelable {
@@ -62,10 +66,13 @@ sealed class OrganizationGroupsAction {
     data object AddClick : OrganizationGroupsAction()
     data object DismissDialog : OrganizationGroupsAction()
     data class DeleteGroupClick(val groupId: String) : OrganizationGroupsAction()
+    data class ConfirmDeleteGroup(val groupId: String) : OrganizationGroupsAction()
+    data object RetryClick : OrganizationGroupsAction()
 }
 
 @HiltViewModel
 class OrganizationGroupsViewModel @Inject constructor(
+    private val organizationRepository: OrganizationRepository,
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel<OrganizationGroupsState, OrganizationGroupsEvent, OrganizationGroupsAction>(
     initialState = OrganizationGroupsState(
@@ -81,12 +88,36 @@ class OrganizationGroupsViewModel @Inject constructor(
     
     private fun loadGroups() {
         viewModelScope.launch {
-            // TODO: 调用 organizationAdminService.getOrganizationGroups
             mutableStateFlow.update {
-                it.copy(
-                    viewState = OrganizationGroupsState.ViewState.Empty,
-                )
+                it.copy(viewState = OrganizationGroupsState.ViewState.Loading)
             }
+            
+            organizationRepository.getOrganizationGroups(
+                organizationId = stateFlow.value.organizationId,
+            )
+                .onSuccess { groups ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            viewState = if (groups.isEmpty()) {
+                                OrganizationGroupsState.ViewState.Empty
+                            } else {
+                                OrganizationGroupsState.ViewState.Content(
+                                    groups = groups.map { json ->
+                                        OrganizationGroupsState.GroupItem(
+                                            id = json.id,
+                                            name = json.name,
+                                        )
+                                    }.toImmutableList()
+                                )
+                            }
+                        )
+                    }
+                }
+                .onFailure {
+                    mutableStateFlow.update {
+                        it.copy(viewState = OrganizationGroupsState.ViewState.Error)
+                    }
+                }
         }
     }
     
@@ -96,6 +127,8 @@ class OrganizationGroupsViewModel @Inject constructor(
             is OrganizationGroupsAction.AddClick -> handleAddClick()
             is OrganizationGroupsAction.DismissDialog -> handleDismissDialog()
             is OrganizationGroupsAction.DeleteGroupClick -> handleDeleteGroupClick(action)
+            is OrganizationGroupsAction.ConfirmDeleteGroup -> handleConfirmDeleteGroup(action)
+            is OrganizationGroupsAction.RetryClick -> loadGroups()
         }
     }
     
@@ -116,6 +149,37 @@ class OrganizationGroupsViewModel @Inject constructor(
             it.copy(
                 dialogState = OrganizationGroupsState.DialogState.ConfirmDelete(action.groupId),
             )
+        }
+    }
+    
+    private fun handleConfirmDeleteGroup(action: OrganizationGroupsAction.ConfirmDeleteGroup) {
+        viewModelScope.launch {
+            mutableStateFlow.update {
+                it.copy(
+                    dialogState = OrganizationGroupsState.DialogState.Loading(
+                        message = BitwardenString.deleting.asText(),
+                    ),
+                )
+            }
+            
+            organizationRepository.deleteOrganizationGroup(
+                organizationId = stateFlow.value.organizationId,
+                groupId = action.groupId,
+            )
+                .onSuccess {
+                    mutableStateFlow.update { it.copy(dialogState = null) }
+                    loadGroups()
+                }
+                .onFailure { error ->
+                    mutableStateFlow.update {
+                        it.copy(
+                            dialogState = OrganizationGroupsState.DialogState.Error(
+                                message = error.message?.asText()
+                                    ?: BitwardenString.an_error_has_occurred.asText(),
+                            ),
+                        )
+                    }
+                }
         }
     }
 }
