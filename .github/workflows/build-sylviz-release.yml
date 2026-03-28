@@ -1,0 +1,44 @@
+name: Build Sylviz Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build FDroid Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Write user.properties
+        run: |
+          echo "gitHubToken=${{ secrets.GITHUB_TOKEN }}" > user.properties
+
+      - name: Write keystore
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > keystores/release.keystore
+
+      - name: Build FDroid Release APK
+        run: ./gradlew assembleFdroidRelease --no-build-cache
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sylviz-release-apk
+          path: app/build/outputs/apk/fdroid/release/*.apk
+          retention-days: 30
