@@ -129,7 +129,6 @@ private fun AboutScreenContent(
         BitwardenPushRow(
             text = stringResource(id = BitwardenString.bitwarden_help_center),
             onClick = onHelpCenterClick,
-            withDivider = false,
             cardStyle = CardStyle.Top(),
             modifier = Modifier
                 .standardHorizontalMargin()
@@ -139,7 +138,6 @@ private fun AboutScreenContent(
         BitwardenPushRow(
             text = stringResource(id = BitwardenString.privacy_policy),
             onClick = onPrivacyPolicyClick,
-            withDivider = false,
             cardStyle = CardStyle.Middle(),
             modifier = Modifier
                 .standardHorizontalMargin()
@@ -153,7 +151,6 @@ private fun AboutScreenContent(
             dialogMessage = stringResource(
                 id = BitwardenString.explore_more_features_of_your_bitwarden_account_on_the_web_app,
             ),
-            withDivider = false,
             cardStyle = CardStyle.Middle(),
             modifier = Modifier
                 .standardHorizontalMargin()

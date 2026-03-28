@@ -163,7 +163,7 @@ class ChangeMasterPasswordViewModel @Inject constructor(
                     dialogState = ChangeMasterPasswordState.DialogState.Error(
                         title = BitwardenString.an_error_has_occurred.asText(),
                         message = BitwardenString.validation_field_required
-                            .asText(BitwardenString.current_master_password.asText()),
+                            .asText(BitwardenString.current_master_password_required.asText()),
                     ),
                 )
             }
@@ -406,7 +406,7 @@ class ChangeMasterPasswordViewModel @Inject constructor(
         mutableStateFlow.update {
             it.copy(
                 dialogState = ChangeMasterPasswordState.DialogState.Loading(
-                    message = BitwardenString.validating.asText(),
+                    message = BitwardenString.loading.asText(),
                 ),
             )
         }

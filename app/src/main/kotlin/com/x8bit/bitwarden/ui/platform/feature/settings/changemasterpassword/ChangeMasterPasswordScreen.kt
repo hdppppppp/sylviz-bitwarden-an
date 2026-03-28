@@ -36,7 +36,6 @@ import com.bitwarden.ui.platform.components.field.BitwardenPasswordField
 import com.bitwarden.ui.platform.components.field.BitwardenTextField
 import com.bitwarden.ui.platform.components.model.CardStyle
 import com.bitwarden.ui.platform.components.scaffold.BitwardenScaffold
-import com.bitwarden.ui.platform.components.toast.BitwardenToastHost
 import com.bitwarden.ui.platform.resource.BitwardenString
 import com.bitwarden.ui.platform.theme.BitwardenTheme
 import com.x8bit.bitwarden.ui.auth.feature.completeregistration.PasswordStrengthIndicator
@@ -122,9 +121,6 @@ fun ChangeMasterPasswordScreen(
             modifier = Modifier.fillMaxSize(),
         )
     }
-
-    // Toast 宿主
-    BitwardenToastHost(viewModel = viewModel)
 }
 
 @Composable
@@ -146,7 +142,7 @@ private fun ChangeMasterPasswordScreenContent(
 
         // 提示信息
         BitwardenInfoCalloutCard(
-            text = stringResource(id = BitwardenString.change_master_password_description),
+            text = stringResource(id = BitwardenString.change_master_password_description_long),
             modifier = Modifier
                 .standardHorizontalMargin()
                 .fillMaxWidth(),
@@ -175,7 +171,7 @@ private fun ChangeMasterPasswordScreenContent(
         // 当前密码（如果用户有主密码）
         if (state.hasMasterPassword) {
             BitwardenPasswordField(
-                label = stringResource(id = BitwardenString.current_master_password),
+                label = stringResource(id = BitwardenString.current_master_password_required),
                 value = state.currentPasswordInput,
                 onValueChange = onCurrentPasswordInputChanged,
                 showPassword = isPasswordVisible,
@@ -190,7 +186,7 @@ private fun ChangeMasterPasswordScreenContent(
 
         // 新密码
         BitwardenPasswordField(
-            label = stringResource(id = BitwardenString.new_master_password),
+            label = stringResource(id = BitwardenString.new_master_password_required),
             value = state.passwordInput,
             onValueChange = onPasswordInputChanged,
             showPassword = isPasswordVisible,
