@@ -35,7 +35,9 @@ jobs:
           echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > keystores/release.keystore
 
       - name: Build FDroid Release APK
-        run: ./gradlew assembleFdroidRelease --no-build-cache
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleFdroidRelease --no-build-cache
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
