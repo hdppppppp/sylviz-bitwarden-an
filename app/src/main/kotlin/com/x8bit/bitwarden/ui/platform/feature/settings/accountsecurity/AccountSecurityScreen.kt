@@ -423,7 +423,8 @@ fun AccountSecurityScreen(
                 modifier = Modifier
                     .standardHorizontalMargin()
                     .fillMaxWidth(),
-            )            if (state.isUnlockWithPasswordEnabled) {
+            )
+            if (state.isUnlockWithPasswordEnabled) {
                 BitwardenTextRow(
                     text = stringResource(id = BitwardenString.change_master_password),
                     onClick = {

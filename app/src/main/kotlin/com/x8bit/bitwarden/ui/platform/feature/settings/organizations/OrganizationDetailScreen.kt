@@ -70,7 +70,7 @@ fun OrganizationDetailScreen(
     BitwardenScaffold(
         topBar = {
             BitwardenMediumTopAppBar(
-                title = state.organizationName.asText(),
+                title = state.organizationName,
                 scrollBehavior = scrollBehavior,
                 navigationIcon = NavigationIcon(
                     navigationIcon = rememberVectorPainter(id = BitwardenDrawable.ic_back),

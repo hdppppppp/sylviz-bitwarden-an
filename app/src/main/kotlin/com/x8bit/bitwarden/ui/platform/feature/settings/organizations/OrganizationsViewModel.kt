@@ -86,10 +86,10 @@ class OrganizationsViewModel @Inject constructor(
     init {
         authRepository.userStateFlow
             .onEach { userState ->
-                val organizations = userState?.organizations?.map {
+                val organizations = userState?.activeAccount?.organizations?.map { org ->
                     OrganizationsState.OrganizationItem(
-                        id = it.id,
-                        name = it.name.asText(),
+                        id = org.id,
+                        name = org.name.asText(),
                     )
                 } ?: emptyList()
                 

@@ -86,12 +86,13 @@ fun OrganizationsScreen(
                         key = { it.id },
                     ) { organization ->
                         BitwardenActionCard(
-                            title = organization.name.asText(),
-                            onClick = {
+                            cardTitle = organization.name.toString(),
+                            actionText = stringResource(id = BitwardenString.view),
+                            onActionClick = {
                                 viewModel.trySendAction(
                                     OrganizationsAction.OrganizationClick(
                                         organizationId = organization.id,
-                                        organizationName = organization.name,
+                                        organizationName = organization.name.toString(),
                                     ),
                                 )
                             },

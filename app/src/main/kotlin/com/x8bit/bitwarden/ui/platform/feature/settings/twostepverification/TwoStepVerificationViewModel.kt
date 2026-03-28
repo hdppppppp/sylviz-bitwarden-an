@@ -41,12 +41,14 @@ class TwoStepVerificationViewModel @Inject constructor(
             yubiKeyEnabled = false,
             webAuthnCredentials = null,
         )
-        when (action.method) {
-            TwoStepMethod.TOTP -> loadTotpKey(action.masterPasswordHash)
-            TwoStepMethod.DUO -> sendAction(TwoStepAction.LoadDuoConfig(action.masterPasswordHash))
-            TwoStepMethod.YUBIKEY -> sendAction(TwoStepAction.LoadYubiKeyConfig(action.masterPasswordHash))
-            TwoStepMethod.WEBAUTHN -> sendAction(TwoStepAction.LoadWebAuthnConfig(action.masterPasswordHash))
-            TwoStepMethod.EMAIL -> Unit
+        viewModelScope.launch {
+            when (action.method) {
+                TwoStepMethod.TOTP -> loadTotpKey(action.masterPasswordHash)
+                TwoStepMethod.DUO -> sendAction(TwoStepAction.LoadDuoConfig(action.masterPasswordHash))
+                TwoStepMethod.YUBIKEY -> sendAction(TwoStepAction.LoadYubiKeyConfig(action.masterPasswordHash))
+                TwoStepMethod.WEBAUTHN -> sendAction(TwoStepAction.LoadWebAuthnConfig(action.masterPasswordHash))
+                TwoStepMethod.EMAIL -> Unit
+            }
         }
     }
 

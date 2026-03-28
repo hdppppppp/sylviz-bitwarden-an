@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +33,7 @@ import com.bitwarden.ui.platform.base.util.EventsEffect
 import com.bitwarden.ui.platform.base.util.standardHorizontalMargin
 import com.bitwarden.ui.platform.components.appbar.BitwardenMediumTopAppBar
 import com.bitwarden.ui.platform.components.appbar.NavigationIcon
-import com.bitwarden.ui.platform.components.card.BitwardenCard
+import com.bitwarden.ui.platform.components.card.bitwardenCardColors
 import com.bitwarden.ui.platform.components.content.BitwardenLoadingContent
 import com.bitwarden.ui.platform.components.dialog.BitwardenBasicDialog
 import com.bitwarden.ui.platform.components.dialog.BitwardenLoadingDialog
@@ -40,6 +41,7 @@ import com.bitwarden.ui.platform.components.scaffold.BitwardenScaffold
 import com.bitwarden.ui.platform.components.util.rememberVectorPainter
 import com.bitwarden.ui.platform.resource.BitwardenDrawable
 import com.bitwarden.ui.platform.resource.BitwardenString
+import com.bitwarden.ui.util.asText
 
 @Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,10 +115,11 @@ fun OrganizationGroupsScreen(
                         items = viewState.groups,
                         key = { it.id },
                     ) { group ->
-                        BitwardenCard(
+                        Card(
                             modifier = Modifier
                                 .standardHorizontalMargin()
                                 .padding(vertical = 4.dp),
+                            colors = bitwardenCardColors(),
                         ) {
                             Row(
                                 modifier = Modifier
@@ -162,6 +165,16 @@ fun OrganizationGroupsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(text = stringResource(id = BitwardenString.no_groups))
+                }
+            }
+            is OrganizationGroupsState.ViewState.Error -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(text = stringResource(id = BitwardenString.an_error_has_occurred))
                 }
             }
         }
