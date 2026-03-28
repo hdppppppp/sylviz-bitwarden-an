@@ -34,7 +34,7 @@ import com.bitwarden.ui.platform.base.util.EventsEffect
 import com.bitwarden.ui.platform.base.util.standardHorizontalMargin
 import com.bitwarden.ui.platform.components.appbar.BitwardenMediumTopAppBar
 import com.bitwarden.ui.platform.components.appbar.NavigationIcon
-import com.bitwarden.ui.platform.components.card.bitwardenCardColors
+import com.bitwarden.ui.platform.components.card.color.bitwardenCardColors
 import com.bitwarden.ui.platform.components.content.BitwardenLoadingContent
 import com.bitwarden.ui.platform.components.dialog.BitwardenBasicDialog
 import com.bitwarden.ui.platform.components.dialog.BitwardenLoadingDialog
@@ -42,7 +42,6 @@ import com.bitwarden.ui.platform.components.scaffold.BitwardenScaffold
 import com.bitwarden.ui.platform.components.util.rememberVectorPainter
 import com.bitwarden.ui.platform.resource.BitwardenDrawable
 import com.bitwarden.ui.platform.resource.BitwardenString
-import com.bitwarden.ui.util.asText
 
 /**
  * 组织集合列表页面
@@ -77,7 +76,7 @@ fun OrganizationCollectionsScreen(
         is OrganizationCollectionsState.DialogState.ConfirmDelete -> {
             BitwardenBasicDialog(
                 title = stringResource(id = BitwardenString.delete_collection),
-                message = stringResource(id = BitwardenString.delete_collection_confirmation).asText(),
+                message = stringResource(id = BitwardenString.delete_collection_confirmation),
                 onDismissRequest = { viewModel.trySendAction(OrganizationCollectionsAction.DismissDialog) },
             )
         }
