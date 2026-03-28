@@ -34,6 +34,18 @@ import com.x8bit.bitwarden.ui.platform.feature.settings.other.otherDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.vault.navigateToVaultSettings
 import com.x8bit.bitwarden.ui.platform.feature.settings.vault.vaultSettingsDestination
 import com.x8bit.bitwarden.ui.vault.feature.importitems.importItemsDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.navigateToOrganizationDetail
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.navigateToOrganizations
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.organizationDetailDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.organizationsDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.members.navigateToOrganizationMembers
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.members.organizationMembersDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.collections.navigateToOrganizationCollections
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.collections.organizationCollectionsDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.groups.navigateToOrganizationGroups
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.groups.organizationGroupsDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.policies.navigateToOrganizationPolicies
+import com.x8bit.bitwarden.ui.platform.feature.settings.organizations.policies.organizationPoliciesDestination
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -130,6 +142,7 @@ fun NavGraphBuilder.settingsGraph(
                 onNavigateToAutoFill = { navController.navigateToAutoFill() },
                 onNavigateToOther = { navController.navigateToOther(isPreAuth = false) },
                 onNavigateToVault = { navController.navigateToVaultSettings() },
+                onNavigateToOrganizations = { navController.navigateToOrganizations() },
             )
         }
         aboutDestination(
@@ -150,6 +163,7 @@ fun NavGraphBuilder.settingsGraph(
             onNavigateToPendingRequests = onNavigateToPendingRequests,
             onNavigateToSetupUnlockScreen = onNavigateToSetupUnlockScreen,
             onNavigateToChangeMasterPassword = { navController.navigateToChangeMasterPassword() },
+            navController = navController,
         )
         appearanceDestination(
             isPreAuth = false,
@@ -180,6 +194,44 @@ fun NavGraphBuilder.settingsGraph(
         )
         blockAutoFillDestination(onNavigateBack = { navController.popBackStack() })
         privilegedAppsListDestination(onNavigateBack = { navController.popBackStack() })
+        
+        // 组织管理相关页面
+        organizationsDestination(
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToOrganizationDetail = { orgId, orgName ->
+                navController.navigateToOrganizationDetail(
+                    organizationId = orgId,
+                    organizationName = orgName,
+                )
+            },
+        )
+        organizationDetailDestination(
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToMembers = { orgId, orgName ->
+                navController.navigateToOrganizationMembers(orgId, orgName)
+            },
+            onNavigateToCollections = { orgId, orgName ->
+                navController.navigateToOrganizationCollections(orgId, orgName)
+            },
+            onNavigateToGroups = { orgId, orgName ->
+                navController.navigateToOrganizationGroups(orgId, orgName)
+            },
+            onNavigateToPolicies = { orgId, orgName ->
+                navController.navigateToOrganizationPolicies(orgId, orgName)
+            },
+        )
+        organizationMembersDestination(
+            onNavigateBack = { navController.popBackStack() },
+        )
+        organizationCollectionsDestination(
+            onNavigateBack = { navController.popBackStack() },
+        )
+        organizationGroupsDestination(
+            onNavigateBack = { navController.popBackStack() },
+        )
+        organizationPoliciesDestination(
+            onNavigateBack = { navController.popBackStack() },
+        )
     }
 }
 
@@ -198,6 +250,7 @@ fun NavGraphBuilder.preAuthSettingsDestinations(
             onNavigateToAccountSecurity = { /* no-op */ },
             onNavigateToAutoFill = { /* no-op */ },
             onNavigateToVault = { /* no-op */ },
+            onNavigateToOrganizations = { /* no-op */ },
         )
     }
     appearanceDestination(

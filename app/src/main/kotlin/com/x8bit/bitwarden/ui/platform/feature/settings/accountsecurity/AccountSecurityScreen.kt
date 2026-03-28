@@ -86,6 +86,11 @@ fun AccountSecurityScreen(
     onNavigateToPendingRequests: () -> Unit,
     onNavigateToSetupUnlockScreen: () -> Unit,
     onNavigateToChangeMasterPassword: () -> Unit,
+    onNavigateToTwoStepVerification: () -> Unit = {},
+    onNavigateToDeviceManagement: () -> Unit = {},
+    onNavigateToSecurityKeys: () -> Unit = {},
+    onNavigateToChangeEmail: () -> Unit = {},
+    onNavigateToChangeUsername: () -> Unit = {},
     viewModel: AccountSecurityViewModel = hiltViewModel(),
     biometricsManager: BiometricsManager = LocalBiometricsManager.current,
     intentManager: IntentManager = LocalIntentManager.current,
@@ -112,7 +117,23 @@ fun AccountSecurityScreen(
             AccountSecurityEvent.NavigateToPendingRequests -> onNavigateToPendingRequests()
 
             is AccountSecurityEvent.NavigateToTwoStepLogin -> {
-                intentManager.launchUri(event.url.toUri())
+                onNavigateToTwoStepVerification()
+            }
+
+            is AccountSecurityEvent.NavigateToDeviceManagement -> {
+                onNavigateToDeviceManagement()
+            }
+
+            is AccountSecurityEvent.NavigateToSecurityKeys -> {
+                onNavigateToSecurityKeys()
+            }
+
+            is AccountSecurityEvent.NavigateToChangeEmail -> {
+                onNavigateToChangeEmail()
+            }
+
+            is AccountSecurityEvent.NavigateToChangeUsername -> {
+                onNavigateToChangeUsername()
             }
 
             is AccountSecurityEvent.NavigateToChangeMasterPassword -> {
@@ -347,23 +368,62 @@ fun AccountSecurityScreen(
                     .standardHorizontalMargin()
                     .fillMaxWidth(),
             )
-            BitwardenExternalLinkRow(
+            BitwardenTextRow(
                 text = stringResource(id = BitwardenString.two_step_login),
-                onConfirmClick = {
+                onClick = {
                     viewModel.trySendAction(AccountSecurityAction.TwoStepLoginClick)
                 },
                 withDivider = false,
-                dialogTitle = stringResource(id = BitwardenString.continue_to_web_app),
-                dialogMessage = stringResource(
-                    id = BitwardenString.two_step_login_description_long,
-                ),
                 cardStyle = CardStyle.Middle(),
                 modifier = Modifier
                     .testTag("TwoStepLoginLinkItemView")
                     .standardHorizontalMargin()
                     .fillMaxWidth(),
             )
-            if (state.isUnlockWithPasswordEnabled) {
+            BitwardenTextRow(
+                text = "登录设备管理",
+                onClick = {
+                    viewModel.trySendAction(AccountSecurityAction.DeviceManagementClick)
+                },
+                withDivider = false,
+                cardStyle = CardStyle.Middle(),
+                modifier = Modifier
+                    .standardHorizontalMargin()
+                    .fillMaxWidth(),
+            )
+            BitwardenTextRow(
+                text = "安全密钥（WebAuthn/FIDO2）",
+                onClick = {
+                    viewModel.trySendAction(AccountSecurityAction.SecurityKeysClick)
+                },
+                withDivider = false,
+                cardStyle = CardStyle.Middle(),
+                modifier = Modifier
+                    .standardHorizontalMargin()
+                    .fillMaxWidth(),
+            )
+            BitwardenTextRow(
+                text = "更改电子邮箱",
+                onClick = {
+                    viewModel.trySendAction(AccountSecurityAction.ChangeEmailClick)
+                },
+                withDivider = false,
+                cardStyle = CardStyle.Middle(),
+                modifier = Modifier
+                    .standardHorizontalMargin()
+                    .fillMaxWidth(),
+            )
+            BitwardenTextRow(
+                text = "更改用户名",
+                onClick = {
+                    viewModel.trySendAction(AccountSecurityAction.ChangeUsernameClick)
+                },
+                withDivider = false,
+                cardStyle = CardStyle.Middle(),
+                modifier = Modifier
+                    .standardHorizontalMargin()
+                    .fillMaxWidth(),
+            )            if (state.isUnlockWithPasswordEnabled) {
                 BitwardenTextRow(
                     text = stringResource(id = BitwardenString.change_master_password),
                     onClick = {

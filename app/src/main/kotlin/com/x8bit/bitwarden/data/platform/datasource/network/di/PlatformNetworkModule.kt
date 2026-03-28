@@ -6,8 +6,10 @@ import com.bitwarden.network.bitwardenServiceClient
 import com.bitwarden.network.interceptor.BaseUrlsProvider
 import com.bitwarden.network.model.BitwardenServiceClientConfig
 import com.bitwarden.network.service.ConfigService
+import com.bitwarden.network.service.DevicesService
 import com.bitwarden.network.service.EventService
 import com.bitwarden.network.service.PushService
+import com.bitwarden.network.service.TwoFactorService
 import com.x8bit.bitwarden.data.auth.datasource.disk.AuthDiskSource
 import com.x8bit.bitwarden.data.auth.manager.AuthTokenManager
 import com.x8bit.bitwarden.data.platform.datasource.network.util.HEADER_VALUE_CLIENT_NAME
@@ -47,6 +49,18 @@ object PlatformNetworkModule {
     fun providePushService(
         bitwardenServiceClient: BitwardenServiceClient,
     ): PushService = bitwardenServiceClient.pushService
+
+    @Provides
+    @Singleton
+    fun provideTwoFactorService(
+        bitwardenServiceClient: BitwardenServiceClient,
+    ): TwoFactorService = bitwardenServiceClient.twoFactorService
+
+    @Provides
+    @Singleton
+    fun provideDevicesService(
+        bitwardenServiceClient: BitwardenServiceClient,
+    ): DevicesService = bitwardenServiceClient.devicesService
 
     @Provides
     @Singleton

@@ -37,6 +37,9 @@ data class ConfigResponseJson(
 
     @SerialName("communication")
     val communication: CommunicationJson?,
+
+    @SerialName("vaultwarden")
+    val vaultwarden: VaultwardenConfigJson? = null,
 ) {
     /**
      * Represents a server in the configuration response.
@@ -51,6 +54,30 @@ data class ConfigResponseJson(
 
         @SerialName("url")
         val url: String?,
+    )
+
+    /**
+     * Represents the Vaultwarden-specific configuration.
+     * 仅在 Vaultwarden 服务器上可用
+     *
+     * @param name Server name, typically "Vaultwarden".
+     * @param version The version of the Vaultwarden server.
+     * @param emergencyAccessAllowed Whether emergency access is enabled.
+     * @param maxEmergencyAccessWaitTimeDays Maximum wait time for emergency access in days.
+     */
+    @Serializable
+    data class VaultwardenConfigJson(
+        @SerialName("name")
+        val name: String?,
+
+        @SerialName("version")
+        val version: String?,
+
+        @SerialName("emergencyAccessAllowed")
+        val emergencyAccessAllowed: Boolean = true,
+
+        @SerialName("maxEmergencyAccessWaitTimeDays")
+        val maxEmergencyAccessWaitTimeDays: Int? = null,
     )
 
     /**

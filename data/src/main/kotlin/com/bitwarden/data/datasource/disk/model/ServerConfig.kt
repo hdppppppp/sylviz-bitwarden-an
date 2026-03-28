@@ -25,4 +25,25 @@ data class ServerConfig(
      */
     val isOfficialBitwardenServer: Boolean
         get() = serverData.server == null
+
+    /**
+     * Whether the server is a Vaultwarden server.
+     */
+    val isVaultwardenServer: Boolean
+        get() = serverData.vaultwarden != null ||
+            serverData.server?.name?.contains("Vaultwarden", ignoreCase = true) == true
+
+    /**
+     * Whether emergency access is enabled on this server.
+     * For Vaultwarden, checks the specific setting; for others, assumes true.
+     */
+    val isEmergencyAccessEnabled: Boolean
+        get() = serverData.vaultwarden?.emergencyAccessAllowed != false
+
+    /**
+     * Maximum emergency access wait time in days.
+     * Only applicable for Vaultwarden servers.
+     */
+    val maxEmergencyAccessWaitTimeDays: Int?
+        get() = serverData.vaultwarden?.maxEmergencyAccessWaitTimeDays
 }

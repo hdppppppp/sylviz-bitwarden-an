@@ -15,15 +15,19 @@ import com.bitwarden.network.service.ConfigService
 import com.bitwarden.network.service.DevicesService
 import com.bitwarden.network.service.DigitalAssetLinkService
 import com.bitwarden.network.service.DownloadService
+import com.bitwarden.network.service.EmergencyAccessService
 import com.bitwarden.network.service.EventService
 import com.bitwarden.network.service.FolderService
 import com.bitwarden.network.service.HaveIBeenPwnedService
 import com.bitwarden.network.service.IdentityService
 import com.bitwarden.network.service.NewAuthRequestService
+import com.bitwarden.network.service.OrganizationAdminService
+import com.bitwarden.network.service.OrganizationManagementService
 import com.bitwarden.network.service.OrganizationService
 import com.bitwarden.network.service.PushService
 import com.bitwarden.network.service.SendsService
 import com.bitwarden.network.service.SyncService
+import com.bitwarden.network.service.TwoFactorService
 
 /**
  * Provides access to Bitwarden services.
@@ -97,6 +101,11 @@ interface BitwardenServiceClient {
     val devicesService: DevicesService
 
     /**
+     * Provides access to the Emergency Access service.
+     */
+    val emergencyAccessService: EmergencyAccessService
+
+    /**
      * Provides access to the Download service.
      */
     val downloadService: DownloadService
@@ -132,6 +141,16 @@ interface BitwardenServiceClient {
     val organizationService: OrganizationService
 
     /**
+     * Provides access to the Organization Management service.
+     */
+    val organizationManagementService: OrganizationManagementService
+
+    /**
+     * Provides access to the Organization Admin service.
+     */
+    val organizationAdminService: OrganizationAdminService
+
+    /**
      * Provides access to the Push service.
      */
     val pushService: PushService
@@ -145,6 +164,11 @@ interface BitwardenServiceClient {
      * Provides access to the Sends service.
      */
     val sendsService: SendsService
+
+    /**
+     * Provides access to the TwoFactor service.
+     */
+    val twoFactorService: TwoFactorService
 
     /**
      * Sets the [refreshTokenProvider] to be used for refreshing access tokens.

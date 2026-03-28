@@ -46,6 +46,7 @@ fun SettingsScreen(
     onNavigateToAutoFill: () -> Unit,
     onNavigateToOther: () -> Unit,
     onNavigateToVault: () -> Unit,
+    onNavigateToOrganizations: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.stateFlow.collectAsStateWithLifecycle()
@@ -59,6 +60,7 @@ fun SettingsScreen(
             SettingsEvent.NavigateOther -> onNavigateToOther()
             SettingsEvent.NavigateVault -> onNavigateToVault()
             SettingsEvent.NavigateAccountSecurityShortcut -> onNavigateToAccountSecurity()
+            SettingsEvent.NavigateOrganizations -> onNavigateToOrganizations()
         }
     }
 

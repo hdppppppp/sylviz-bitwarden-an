@@ -1,26 +1,24 @@
 package com.bitwarden.network.service
 
+import com.bitwarden.network.model.DeviceResponseJson
 import com.bitwarden.network.model.TrustedDeviceKeysResponseJson
 
 /**
  * Provides an API for interacting with the /devices endpoints.
  */
 interface DevicesService {
-    /**
-     * Check whether this device is known (and thus whether Login with Device is available).
-     */
-    suspend fun getIsKnownDevice(
-        emailAddress: String,
-        deviceId: String,
-    ): Result<Boolean>
+    suspend fun getIsKnownDevice(emailAddress: String, deviceId: String): Result<Boolean>
 
-    /**
-     * Establishes trust with this device by storing the encrypted keys in the cloud.
-     */
     suspend fun trustDevice(
         appId: String,
         encryptedUserKey: String,
         encryptedDevicePublicKey: String,
         encryptedDevicePrivateKey: String,
     ): Result<TrustedDeviceKeysResponseJson>
+
+    /** Returns all devices for the current user. */
+    suspend fun getDevices(): Result<List<DeviceResponseJson>>
+
+    /** Removes (deauthorizes) a device by its ID. */
+    suspend fun deleteDevice(id: String): Result<Unit>
 }

@@ -113,6 +113,10 @@ class SettingsViewModel @Inject constructor(
             Settings.ABOUT -> {
                 sendEvent(SettingsEvent.NavigateAbout)
             }
+
+            Settings.ORGANIZATIONS -> {
+                sendEvent(SettingsEvent.NavigateOrganizations)
+            }
         }
     }
 }
@@ -137,6 +141,7 @@ data class SettingsState(
                 Settings.APPEARANCE -> true
                 Settings.OTHER -> true
                 Settings.ABOUT -> true
+                Settings.ORGANIZATIONS -> !isPreAuth
             }
         }
         .toImmutableList()
@@ -191,6 +196,11 @@ sealed class SettingsEvent {
      * Navigate to the vault screen.
      */
     data object NavigateVault : SettingsEvent()
+
+    /**
+     * Navigate to the organizations screen.
+     */
+    data object NavigateOrganizations : SettingsEvent()
 }
 
 /**
@@ -264,5 +274,10 @@ enum class Settings(
         text = BitwardenString.about.asText(),
         vectorIconRes = BitwardenDrawable.ic_info_circle,
         testTag = "AboutSettingsButton",
+    ),
+    ORGANIZATIONS(
+        text = BitwardenString.organizations.asText(),
+        vectorIconRes = BitwardenDrawable.ic_organizations,
+        testTag = "OrganizationsSettingsButton",
     ),
 }

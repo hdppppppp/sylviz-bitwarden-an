@@ -8,6 +8,9 @@ import com.bitwarden.network.model.CreateAccountKeysRequest
 import com.bitwarden.network.model.CreateAccountKeysResponseJson
 import com.bitwarden.network.model.DeleteAccountRequestJson
 import com.bitwarden.network.model.DeleteAccountResponseJson
+import com.bitwarden.network.model.EmailTokenRequestJson
+import com.bitwarden.network.model.ChangeEmailRequestJson
+import com.bitwarden.network.model.UpdateProfileRequestJson
 import com.bitwarden.network.model.KeyConnectorKeyRequestJson
 import com.bitwarden.network.model.KeyConnectorMasterKeyRequestJson
 import com.bitwarden.network.model.KeyConnectorMasterKeyResponseJson
@@ -213,7 +216,21 @@ internal class AccountsServiceImpl constructor(
             .toResult()
 
     override suspend fun updateKdf(body: UpdateKdfJsonRequest): Result<Unit> =
+        authenticatedAccountsApi.updateKdf(body).toResult()
+
+    override suspend fun requestEmailToken(masterPasswordHash: String, newEmail: String): Result<Unit> =
         authenticatedAccountsApi
-            .updateKdf(body)
+            .requestEmailToken(EmailTokenRequestJson(masterPasswordHash, newEmail))
             .toResult()
+
+    override suspend fun changeEmail(masterPasswordHash: String, newEmail: String, token: String): Result<Unit> =
+        authenticatedAccountsApi
+            .changeEmail(ChangeEmailRequestJson(masterPasswordHash, newEmail, token))
+            .toResult()
+
+    override suspend fun updateProfile(name: String?): Result<String?> =
+        authenticatedAccountsApi
+            .updateProfile(UpdateProfileRequestJson(name = name))
+            .toResult()
+            .map { it.name }
 }

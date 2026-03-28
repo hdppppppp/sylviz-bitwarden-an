@@ -27,6 +27,8 @@ import com.bitwarden.network.service.DigitalAssetLinkService
 import com.bitwarden.network.service.DigitalAssetLinkServiceImpl
 import com.bitwarden.network.service.DownloadService
 import com.bitwarden.network.service.DownloadServiceImpl
+import com.bitwarden.network.service.EmergencyAccessService
+import com.bitwarden.network.service.EmergencyAccessServiceImpl
 import com.bitwarden.network.service.EventService
 import com.bitwarden.network.service.EventServiceImpl
 import com.bitwarden.network.service.FolderService
@@ -37,12 +39,17 @@ import com.bitwarden.network.service.IdentityService
 import com.bitwarden.network.service.IdentityServiceImpl
 import com.bitwarden.network.service.NewAuthRequestService
 import com.bitwarden.network.service.NewAuthRequestServiceImpl
+import com.bitwarden.network.service.OrganizationAdminService
+import com.bitwarden.network.service.OrganizationAdminServiceImpl
+import com.bitwarden.network.service.OrganizationManagementService
+import com.bitwarden.network.service.OrganizationManagementServiceImpl
 import com.bitwarden.network.service.OrganizationService
 import com.bitwarden.network.service.OrganizationServiceImpl
 import com.bitwarden.network.service.PushService
 import com.bitwarden.network.service.PushServiceImpl
 import com.bitwarden.network.service.SendsServiceImpl
 import com.bitwarden.network.service.SyncServiceImpl
+import com.bitwarden.network.service.TwoFactorServiceImpl
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
@@ -145,6 +152,12 @@ internal class BitwardenServiceClientImpl(
         )
     }
 
+    override val emergencyAccessService: EmergencyAccessService by lazy {
+        EmergencyAccessServiceImpl(
+            emergencyAccessApi = retrofits.authenticatedApiRetrofit.create(),
+        )
+    }
+
     override val digitalAssetLinkService: DigitalAssetLinkService by lazy {
         DigitalAssetLinkServiceImpl(
             digitalAssetLinkApi = retrofits
@@ -197,6 +210,18 @@ internal class BitwardenServiceClientImpl(
         )
     }
 
+    override val organizationManagementService: OrganizationManagementService by lazy {
+        OrganizationManagementServiceImpl(
+            authenticatedOrganizationApi = retrofits.authenticatedApiRetrofit.create(),
+        )
+    }
+
+    override val organizationAdminService: OrganizationAdminService by lazy {
+        OrganizationAdminServiceImpl(
+            authenticatedOrganizationApi = retrofits.authenticatedApiRetrofit.create(),
+        )
+    }
+
     override val pushService: PushService by lazy {
         PushServiceImpl(
             pushApi = retrofits.authenticatedApiRetrofit.create(),
@@ -210,6 +235,12 @@ internal class BitwardenServiceClientImpl(
             azureApi = retrofits.createStaticRetrofit().create(),
             json = clientJson,
             clock = bitwardenServiceClientConfig.clock,
+        )
+    }
+
+    override val twoFactorService by lazy {
+        TwoFactorServiceImpl(
+            twoFactorApi = retrofits.authenticatedApiRetrofit.create(),
         )
     }
 

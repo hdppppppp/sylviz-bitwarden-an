@@ -28,157 +28,177 @@ import com.x8bit.bitwarden.data.platform.repository.model.VaultTimeoutAction
 import com.x8bit.bitwarden.data.vault.repository.VaultRepository
 import com.x8bit.bitwarden.ui.platform.components.toggle.UnlockWithPinState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.crypto.Cipher
+import javax.inject.Inject
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
-import javax.crypto.Cipher
-import javax.inject.Inject
 
 private const val KEY_STATE = "state"
 private const val MINUTES_PER_HOUR = 60
 
-/**
- * View model for the account security screen.
- */
+/** View model for the account security screen. */
 @Suppress("LongParameterList", "TooManyFunctions")
 @HiltViewModel
-class AccountSecurityViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val vaultRepository: VaultRepository,
-    private val settingsRepository: SettingsRepository,
-    private val environmentRepository: EnvironmentRepository,
-    private val firstTimeActionManager: FirstTimeActionManager,
-    policyManager: PolicyManager,
-    savedStateHandle: SavedStateHandle,
-) : BaseViewModel<AccountSecurityState, AccountSecurityEvent, AccountSecurityAction>(
-    initialState = savedStateHandle[KEY_STATE] ?: run {
-        val userState = requireNotNull(authRepository.userStateFlow.value)
-        val userId = userState.activeUserId
-        AccountSecurityState(
-            dialog = null,
-            fingerprintPhrase = "".asText(), // This will be filled in dynamically
-            isAuthenticatorSyncChecked = settingsRepository.isAuthenticatorSyncEnabled,
-            isUnlockWithBiometricsEnabled = settingsRepository.isUnlockWithBiometricsEnabled &&
-                authRepository.isBiometricIntegrityValid(userId = userId),
-            isUnlockWithPasswordEnabled = userState.activeAccount.hasMasterPassword,
-            isUnlockWithPinEnabled = settingsRepository.isUnlockWithPinEnabled,
-            shouldShowEnableAuthenticatorSync = isBuildVersionAtLeast(Build.VERSION_CODES.S),
-            userId = userId,
-            vaultTimeout = settingsRepository.vaultTimeout,
-            vaultTimeoutAction = settingsRepository.vaultTimeoutAction,
-            vaultTimeoutPolicy = null,
-            shouldShowUnlockActionCard = false,
-            removeUnlockWithPinPolicyEnabled = false,
-        )
-    },
-) {
+class AccountSecurityViewModel
+@Inject
+constructor(
+        private val authRepository: AuthRepository,
+        private val vaultRepository: VaultRepository,
+        private val settingsRepository: SettingsRepository,
+        private val environmentRepository: EnvironmentRepository,
+        private val firstTimeActionManager: FirstTimeActionManager,
+        policyManager: PolicyManager,
+        savedStateHandle: SavedStateHandle,
+) :
+        BaseViewModel<AccountSecurityState, AccountSecurityEvent, AccountSecurityAction>(
+                initialState = savedStateHandle[KEY_STATE]
+                                ?: run {
+                                    val userState =
+                                            requireNotNull(authRepository.userStateFlow.value)
+                                    val userId = userState.activeUserId
+                                    AccountSecurityState(
+                                            dialog = null,
+                                            fingerprintPhrase =
+                                                    "".asText(), // This will be filled in
+                                            // dynamically
+                                            isAuthenticatorSyncChecked =
+                                                    settingsRepository.isAuthenticatorSyncEnabled,
+                                            isUnlockWithBiometricsEnabled =
+                                                    settingsRepository
+                                                            .isUnlockWithBiometricsEnabled &&
+                                                            authRepository
+                                                                    .isBiometricIntegrityValid(
+                                                                            userId = userId
+                                                                    ),
+                                            isUnlockWithPasswordEnabled =
+                                                    userState.activeAccount.hasMasterPassword,
+                                            isUnlockWithPinEnabled =
+                                                    settingsRepository.isUnlockWithPinEnabled,
+                                            shouldShowEnableAuthenticatorSync =
+                                                    isBuildVersionAtLeast(Build.VERSION_CODES.S),
+                                            userId = userId,
+                                            vaultTimeout = settingsRepository.vaultTimeout,
+                                            vaultTimeoutAction =
+                                                    settingsRepository.vaultTimeoutAction,
+                                            vaultTimeoutPolicy = null,
+                                            shouldShowUnlockActionCard = false,
+                                            removeUnlockWithPinPolicyEnabled = false,
+                                    )
+                                },
+        ) {
     private val webSettingsUrl: String
         get() {
-            val baseUrl = environmentRepository
-                .environment
-                .environmentUrlData
-                .baseWebVaultUrlOrDefault
+            val baseUrl =
+                    environmentRepository.environment.environmentUrlData.baseWebVaultUrlOrDefault
             return "$baseUrl/#/settings"
         }
 
     init {
-        stateFlow
-            .onEach { savedStateHandle[KEY_STATE] = it }
-            .launchIn(viewModelScope)
+        stateFlow.onEach { savedStateHandle[KEY_STATE] = it }.launchIn(viewModelScope)
 
         policyManager
-            .getActivePoliciesFlow(type = PolicyTypeJson.MAXIMUM_VAULT_TIMEOUT)
-            .map { policies ->
-                AccountSecurityAction.Internal.PolicyUpdateReceive(
-                    vaultTimeoutPolicies = policies.mapNotNull {
-                        it.policyInformation as? PolicyInformation.VaultTimeout
-                    },
-                )
-            }
-            .onEach(::sendAction)
-            .launchIn(viewModelScope)
+                .getActivePoliciesFlow(type = PolicyTypeJson.MAXIMUM_VAULT_TIMEOUT)
+                .map { policies ->
+                    AccountSecurityAction.Internal.PolicyUpdateReceive(
+                            vaultTimeoutPolicies =
+                                    policies.mapNotNull {
+                                        it.policyInformation as? PolicyInformation.VaultTimeout
+                                    },
+                    )
+                }
+                .onEach(::sendAction)
+                .launchIn(viewModelScope)
 
         policyManager
-            .getActivePoliciesFlow(type = PolicyTypeJson.REMOVE_UNLOCK_WITH_PIN)
-            .map { policies ->
-                AccountSecurityAction.Internal.RemovePinPolicyUpdateReceive(
-                    removeUnlockWithPinPolicyEnabled = policies.isNotEmpty(),
-                )
-            }
-            .onEach(::sendAction)
-            .launchIn(viewModelScope)
+                .getActivePoliciesFlow(type = PolicyTypeJson.REMOVE_UNLOCK_WITH_PIN)
+                .map { policies ->
+                    AccountSecurityAction.Internal.RemovePinPolicyUpdateReceive(
+                            removeUnlockWithPinPolicyEnabled = policies.isNotEmpty(),
+                    )
+                }
+                .onEach(::sendAction)
+                .launchIn(viewModelScope)
 
         firstTimeActionManager
-            .firstTimeStateFlow
-            .map {
-                AccountSecurityAction.Internal.ShowUnlockBadgeUpdated(it.showSetupUnlockCard)
-            }
-            .onEach(::sendAction)
-            .launchIn(viewModelScope)
+                .firstTimeStateFlow
+                .map {
+                    AccountSecurityAction.Internal.ShowUnlockBadgeUpdated(it.showSetupUnlockCard)
+                }
+                .onEach(::sendAction)
+                .launchIn(viewModelScope)
 
         settingsRepository
-            .isUnlockWithBiometricsEnabledFlow
-            .map {
-                AccountSecurityAction.Internal.BiometricLockUpdate(
-                    isBiometricEnabled = it,
-                )
-            }
-            .onEach(::sendAction)
-            .launchIn(viewModelScope)
+                .isUnlockWithBiometricsEnabledFlow
+                .map {
+                    AccountSecurityAction.Internal.BiometricLockUpdate(
+                            isBiometricEnabled = it,
+                    )
+                }
+                .onEach(::sendAction)
+                .launchIn(viewModelScope)
 
         settingsRepository
-            .isUnlockWithPinEnabledFlow
-            .map {
-                AccountSecurityAction.Internal.PinProtectedLockUpdate(
-                    isPinProtected = it,
-                )
-            }
-            .onEach(::sendAction)
-            .launchIn(viewModelScope)
+                .isUnlockWithPinEnabledFlow
+                .map {
+                    AccountSecurityAction.Internal.PinProtectedLockUpdate(
+                            isPinProtected = it,
+                    )
+                }
+                .onEach(::sendAction)
+                .launchIn(viewModelScope)
 
         viewModelScope.launch {
             trySendAction(
-                AccountSecurityAction.Internal.FingerprintResultReceive(
-                    fingerprintResult = settingsRepository.getUserFingerprint(),
-                ),
+                    AccountSecurityAction.Internal.FingerprintResultReceive(
+                            fingerprintResult = settingsRepository.getUserFingerprint(),
+                    ),
             )
         }
     }
 
-    override fun handleAction(action: AccountSecurityAction): Unit = when (action) {
-        AccountSecurityAction.AccountFingerprintPhraseClick -> handleAccountFingerprintPhraseClick()
-        is AccountSecurityAction.AuthenticatorSyncToggle -> handleAuthenticatorSyncToggle(action)
-        AccountSecurityAction.BackClick -> handleBackClick()
-        AccountSecurityAction.ChangeMasterPasswordClick -> handleChangeMasterPasswordClick()
-        AccountSecurityAction.ConfirmLogoutClick -> handleConfirmLogoutClick()
-        AccountSecurityAction.DeleteAccountClick -> handleDeleteAccountClick()
-        AccountSecurityAction.DismissDialog -> handleDismissDialog()
-        AccountSecurityAction.EnableBiometricsClick -> handleEnableBiometricsClick()
-        AccountSecurityAction.FingerPrintLearnMoreClick -> handleFingerPrintLearnMoreClick()
-        AccountSecurityAction.LockNowClick -> handleLockNowClick()
-        AccountSecurityAction.LogoutClick -> handleLogoutClick()
-        AccountSecurityAction.PendingLoginRequestsClick -> handlePendingLoginRequestsClick()
-        is AccountSecurityAction.VaultTimeoutTypeSelect -> handleVaultTimeoutTypeSelect(action)
-        is AccountSecurityAction.CustomVaultTimeoutSelect -> handleCustomVaultTimeoutSelect(action)
-        is AccountSecurityAction.VaultTimeoutActionSelect -> handleVaultTimeoutActionSelect(action)
-        AccountSecurityAction.TwoStepLoginClick -> handleTwoStepLoginClick()
-        AccountSecurityAction.UnlockWithBiometricToggleDisabled -> {
-            handleUnlockWithBiometricToggleDisabled()
-        }
-
-        is AccountSecurityAction.UnlockWithBiometricToggleEnabled -> {
-            handleUnlockWithBiometricToggleEnabled(action)
-        }
-
-        is AccountSecurityAction.UnlockWithPinToggle -> handleUnlockWithPinToggle(action)
-        is AccountSecurityAction.PushNotificationConfirm -> handlePushNotificationConfirm()
-        is AccountSecurityAction.Internal -> handleInternalAction(action)
-        AccountSecurityAction.UnlockActionCardCtaClick -> handleUnlockCardCtaClick()
-        AccountSecurityAction.UnlockActionCardDismiss -> handleUnlockCardDismiss()
-    }
+    override fun handleAction(action: AccountSecurityAction): Unit =
+            when (action) {
+                AccountSecurityAction.AccountFingerprintPhraseClick ->
+                        handleAccountFingerprintPhraseClick()
+                is AccountSecurityAction.AuthenticatorSyncToggle ->
+                        handleAuthenticatorSyncToggle(action)
+                AccountSecurityAction.BackClick -> handleBackClick()
+                AccountSecurityAction.ChangeMasterPasswordClick -> handleChangeMasterPasswordClick()
+                AccountSecurityAction.ConfirmLogoutClick -> handleConfirmLogoutClick()
+                AccountSecurityAction.DeleteAccountClick -> handleDeleteAccountClick()
+                AccountSecurityAction.DismissDialog -> handleDismissDialog()
+                AccountSecurityAction.EnableBiometricsClick -> handleEnableBiometricsClick()
+                AccountSecurityAction.FingerPrintLearnMoreClick -> handleFingerPrintLearnMoreClick()
+                AccountSecurityAction.LockNowClick -> handleLockNowClick()
+                AccountSecurityAction.LogoutClick -> handleLogoutClick()
+                AccountSecurityAction.PendingLoginRequestsClick -> handlePendingLoginRequestsClick()
+                is AccountSecurityAction.VaultTimeoutTypeSelect ->
+                        handleVaultTimeoutTypeSelect(action)
+                is AccountSecurityAction.CustomVaultTimeoutSelect ->
+                        handleCustomVaultTimeoutSelect(action)
+                is AccountSecurityAction.VaultTimeoutActionSelect ->
+                        handleVaultTimeoutActionSelect(action)
+                AccountSecurityAction.TwoStepLoginClick -> handleTwoStepLoginClick()
+                AccountSecurityAction.DeviceManagementClick -> handleDeviceManagementClick()
+                AccountSecurityAction.SecurityKeysClick -> handleSecurityKeysClick()
+                AccountSecurityAction.ChangeEmailClick -> handleChangeEmailClick()
+                AccountSecurityAction.ChangeUsernameClick -> handleChangeUsernameClick()
+                AccountSecurityAction.UnlockWithBiometricToggleDisabled -> {
+                    handleUnlockWithBiometricToggleDisabled()
+                }
+                is AccountSecurityAction.UnlockWithBiometricToggleEnabled -> {
+                    handleUnlockWithBiometricToggleEnabled(action)
+                }
+                is AccountSecurityAction.UnlockWithPinToggle -> handleUnlockWithPinToggle(action)
+                is AccountSecurityAction.PushNotificationConfirm -> handlePushNotificationConfirm()
+                is AccountSecurityAction.Internal -> handleInternalAction(action)
+                AccountSecurityAction.UnlockActionCardCtaClick -> handleUnlockCardCtaClick()
+                AccountSecurityAction.UnlockActionCardDismiss -> handleUnlockCardDismiss()
+            }
 
     private fun handleUnlockCardDismiss() {
         dismissUnlockNotificationBadge()
@@ -193,7 +213,7 @@ class AccountSecurityViewModel @Inject constructor(
     }
 
     private fun handleAuthenticatorSyncToggle(
-        action: AccountSecurityAction.AuthenticatorSyncToggle,
+            action: AccountSecurityAction.AuthenticatorSyncToggle,
     ) {
         settingsRepository.isAuthenticatorSyncEnabled = action.enabled
         mutableStateFlow.update { it.copy(isAuthenticatorSyncChecked = action.enabled) }
@@ -208,7 +228,7 @@ class AccountSecurityViewModel @Inject constructor(
     private fun handleConfirmLogoutClick() {
         mutableStateFlow.update { it.copy(dialog = null) }
         authRepository.logout(
-            reason = LogoutReason.Click(source = "AccountSecurityViewModel"),
+                reason = LogoutReason.Click(source = "AccountSecurityViewModel"),
         )
     }
 
@@ -221,26 +241,29 @@ class AccountSecurityViewModel @Inject constructor(
     }
 
     private fun handleEnableBiometricsClick() {
-        authRepository
-            .createCipherOrNull(userId = state.userId)
-            ?.let {
-                sendEvent(
+        authRepository.createCipherOrNull(userId = state.userId)?.let {
+            sendEvent(
                     AccountSecurityEvent.ShowBiometricsPrompt(
-                        // Generate a new key in case the previous one was invalidated
-                        cipher = it,
+                            // Generate a new key in case the previous one was invalidated
+                            cipher = it,
                     ),
-                )
-            }
-            ?: run {
-                mutableStateFlow.update {
-                    it.copy(
-                        dialog = AccountSecurityDialog.Error(
-                            title = BitwardenString.an_error_has_occurred.asText(),
-                            message = BitwardenString.generic_error_message.asText(),
-                        ),
-                    )
+            )
+        }
+                ?: run {
+                    mutableStateFlow.update {
+                        it.copy(
+                                dialog =
+                                        AccountSecurityDialog.Error(
+                                                title =
+                                                        BitwardenString.an_error_has_occurred
+                                                                .asText(),
+                                                message =
+                                                        BitwardenString.generic_error_message
+                                                                .asText(),
+                                        ),
+                        )
+                    }
                 }
-            }
         dismissUnlockNotificationBadge()
     }
 
@@ -266,26 +289,27 @@ class AccountSecurityViewModel @Inject constructor(
 
     private fun handleVaultTimeoutTypeSelect(action: AccountSecurityAction.VaultTimeoutTypeSelect) {
         val previousTimeout = state.vaultTimeout
-        val vaultTimeout = when (action.vaultTimeoutType) {
-            VaultTimeout.Type.IMMEDIATELY -> VaultTimeout.Immediately
-            VaultTimeout.Type.ONE_MINUTE -> VaultTimeout.OneMinute
-            VaultTimeout.Type.FIVE_MINUTES -> VaultTimeout.FiveMinutes
-            VaultTimeout.Type.FIFTEEN_MINUTES -> VaultTimeout.FifteenMinutes
-            VaultTimeout.Type.THIRTY_MINUTES -> VaultTimeout.ThirtyMinutes
-            VaultTimeout.Type.ONE_HOUR -> VaultTimeout.OneHour
-            VaultTimeout.Type.FOUR_HOURS -> VaultTimeout.FourHours
-            VaultTimeout.Type.ON_APP_RESTART -> VaultTimeout.OnAppRestart
-            VaultTimeout.Type.NEVER -> VaultTimeout.Never
-            VaultTimeout.Type.CUSTOM -> {
-                previousTimeout as? VaultTimeout.Custom
-                    ?: VaultTimeout.Custom(vaultTimeoutInMinutes = 0)
-            }
-        }
+        val vaultTimeout =
+                when (action.vaultTimeoutType) {
+                    VaultTimeout.Type.IMMEDIATELY -> VaultTimeout.Immediately
+                    VaultTimeout.Type.ONE_MINUTE -> VaultTimeout.OneMinute
+                    VaultTimeout.Type.FIVE_MINUTES -> VaultTimeout.FiveMinutes
+                    VaultTimeout.Type.FIFTEEN_MINUTES -> VaultTimeout.FifteenMinutes
+                    VaultTimeout.Type.THIRTY_MINUTES -> VaultTimeout.ThirtyMinutes
+                    VaultTimeout.Type.ONE_HOUR -> VaultTimeout.OneHour
+                    VaultTimeout.Type.FOUR_HOURS -> VaultTimeout.FourHours
+                    VaultTimeout.Type.ON_APP_RESTART -> VaultTimeout.OnAppRestart
+                    VaultTimeout.Type.NEVER -> VaultTimeout.Never
+                    VaultTimeout.Type.CUSTOM -> {
+                        previousTimeout as? VaultTimeout.Custom
+                                ?: VaultTimeout.Custom(vaultTimeoutInMinutes = 0)
+                    }
+                }
         handleVaultTimeoutSelect(vaultTimeout = vaultTimeout)
     }
 
     private fun handleCustomVaultTimeoutSelect(
-        action: AccountSecurityAction.CustomVaultTimeoutSelect,
+            action: AccountSecurityAction.CustomVaultTimeoutSelect,
     ) {
         handleVaultTimeoutSelect(vaultTimeout = action.customVaultTimeout)
     }
@@ -293,20 +317,41 @@ class AccountSecurityViewModel @Inject constructor(
     private fun handleVaultTimeoutSelect(vaultTimeout: VaultTimeout) {
         mutableStateFlow.update {
             it.copy(
-                vaultTimeout = vaultTimeout,
+                    vaultTimeout = vaultTimeout,
             )
         }
         settingsRepository.vaultTimeout = vaultTimeout
     }
 
     private fun handleVaultTimeoutActionSelect(
-        action: AccountSecurityAction.VaultTimeoutActionSelect,
+            action: AccountSecurityAction.VaultTimeoutActionSelect,
     ) {
         setVaultTimeoutAction(action.vaultTimeoutAction)
     }
 
     private fun handleTwoStepLoginClick() {
         sendEvent(AccountSecurityEvent.NavigateToTwoStepLogin(webSettingsUrl))
+    }
+
+    private fun handleDeviceManagementClick() {
+        val baseUrl = environmentRepository.environment.environmentUrlData.baseWebVaultUrlOrDefault
+        sendEvent(
+                AccountSecurityEvent.NavigateToDeviceManagement(
+                        "$baseUrl/#/settings/security/device-management"
+                )
+        )
+    }
+
+    private fun handleSecurityKeysClick() {
+        sendEvent(AccountSecurityEvent.NavigateToSecurityKeys)
+    }
+
+    private fun handleChangeEmailClick() {
+        sendEvent(AccountSecurityEvent.NavigateToChangeEmail)
+    }
+
+    private fun handleChangeUsernameClick() {
+        sendEvent(AccountSecurityEvent.NavigateToChangeUsername)
     }
 
     private fun handleUnlockWithBiometricToggleDisabled() {
@@ -316,12 +361,12 @@ class AccountSecurityViewModel @Inject constructor(
     }
 
     private fun handleUnlockWithBiometricToggleEnabled(
-        action: AccountSecurityAction.UnlockWithBiometricToggleEnabled,
+            action: AccountSecurityAction.UnlockWithBiometricToggleEnabled,
     ) {
         mutableStateFlow.update {
             it.copy(
-                dialog = AccountSecurityDialog.Loading(BitwardenString.saving.asText()),
-                isUnlockWithBiometricsEnabled = true,
+                    dialog = AccountSecurityDialog.Loading(BitwardenString.saving.asText()),
+                    isUnlockWithBiometricsEnabled = true,
             )
         }
         viewModelScope.launch {
@@ -341,12 +386,11 @@ class AccountSecurityViewModel @Inject constructor(
                 settingsRepository.clearUnlockPin()
                 validateVaultTimeoutAction()
             }
-
             is UnlockWithPinState.Enabled -> {
                 settingsRepository.storeUnlockPin(
-                    pin = state.pin,
-                    shouldRequireMasterPasswordOnRestart =
-                        state.shouldRequireMasterPasswordOnRestart,
+                        pin = state.pin,
+                        shouldRequireMasterPasswordOnRestart =
+                                state.shouldRequireMasterPasswordOnRestart,
                 )
             }
         }
@@ -358,27 +402,21 @@ class AccountSecurityViewModel @Inject constructor(
             is AccountSecurityAction.Internal.BiometricsKeyResultReceive -> {
                 handleBiometricsKeyResultReceive(action)
             }
-
             is AccountSecurityAction.Internal.FingerprintResultReceive -> {
                 handleFingerprintResultReceived(action)
             }
-
             is AccountSecurityAction.Internal.PolicyUpdateReceive -> {
                 handlePolicyUpdateReceive(action)
             }
-
             is AccountSecurityAction.Internal.ShowUnlockBadgeUpdated -> {
                 handleShowUnlockBadgeUpdated(action)
             }
-
             is AccountSecurityAction.Internal.BiometricLockUpdate -> {
                 hanleBiometricUnlockUpdate(action)
             }
-
             is AccountSecurityAction.Internal.PinProtectedLockUpdate -> {
                 handlePinProtectedLockUpdate(action)
             }
-
             is AccountSecurityAction.Internal.RemovePinPolicyUpdateReceive -> {
                 handleRemovePinPolicyUpdate(action)
             }
@@ -386,63 +424,62 @@ class AccountSecurityViewModel @Inject constructor(
     }
 
     private fun handleRemovePinPolicyUpdate(
-        action: AccountSecurityAction.Internal.RemovePinPolicyUpdateReceive,
+            action: AccountSecurityAction.Internal.RemovePinPolicyUpdateReceive,
     ) {
         mutableStateFlow.update {
             it.copy(
-                removeUnlockWithPinPolicyEnabled = action.removeUnlockWithPinPolicyEnabled,
+                    removeUnlockWithPinPolicyEnabled = action.removeUnlockWithPinPolicyEnabled,
             )
         }
     }
 
     private fun handlePinProtectedLockUpdate(
-        action: AccountSecurityAction.Internal.PinProtectedLockUpdate,
+            action: AccountSecurityAction.Internal.PinProtectedLockUpdate,
     ) {
         mutableStateFlow.update {
             it.copy(
-                isUnlockWithPinEnabled = action.isPinProtected,
+                    isUnlockWithPinEnabled = action.isPinProtected,
             )
         }
     }
 
     private fun hanleBiometricUnlockUpdate(
-        action: AccountSecurityAction.Internal.BiometricLockUpdate,
+            action: AccountSecurityAction.Internal.BiometricLockUpdate,
     ) {
         mutableStateFlow.update {
             it.copy(
-                isUnlockWithBiometricsEnabled = action.isBiometricEnabled,
+                    isUnlockWithBiometricsEnabled = action.isBiometricEnabled,
             )
         }
     }
 
     private fun handleShowUnlockBadgeUpdated(
-        action: AccountSecurityAction.Internal.ShowUnlockBadgeUpdated,
+            action: AccountSecurityAction.Internal.ShowUnlockBadgeUpdated,
     ) {
         mutableStateFlow.update {
             it.copy(
-                shouldShowUnlockActionCard = action.showUnlockBadge,
+                    shouldShowUnlockActionCard = action.showUnlockBadge,
             )
         }
     }
 
     private fun handleBiometricsKeyResultReceive(
-        action: AccountSecurityAction.Internal.BiometricsKeyResultReceive,
+            action: AccountSecurityAction.Internal.BiometricsKeyResultReceive,
     ) {
         when (action.result) {
             is BiometricsKeyResult.Error -> {
                 mutableStateFlow.update {
                     it.copy(
-                        dialog = null,
-                        isUnlockWithBiometricsEnabled = false,
+                            dialog = null,
+                            isUnlockWithBiometricsEnabled = false,
                     )
                 }
             }
-
             BiometricsKeyResult.Success -> {
                 mutableStateFlow.update {
                     it.copy(
-                        dialog = null,
-                        isUnlockWithBiometricsEnabled = true,
+                            dialog = null,
+                            isUnlockWithBiometricsEnabled = true,
                     )
                 }
             }
@@ -450,21 +487,22 @@ class AccountSecurityViewModel @Inject constructor(
     }
 
     private fun handleFingerprintResultReceived(
-        action: AccountSecurityAction.Internal.FingerprintResultReceive,
+            action: AccountSecurityAction.Internal.FingerprintResultReceive,
     ) {
         mutableStateFlow.update {
             it.copy(
-                fingerprintPhrase = when (val result = action.fingerprintResult) {
-                    is UserFingerprintResult.Success -> result.fingerprint.asText()
-                    // This should never fail for an unlocked account.
-                    is UserFingerprintResult.Error -> "".asText()
-                },
+                    fingerprintPhrase =
+                            when (val result = action.fingerprintResult) {
+                                is UserFingerprintResult.Success -> result.fingerprint.asText()
+                                // This should never fail for an unlocked account.
+                                is UserFingerprintResult.Error -> "".asText()
+                            },
             )
         }
     }
 
     private fun handlePolicyUpdateReceive(
-        action: AccountSecurityAction.Internal.PolicyUpdateReceive,
+            action: AccountSecurityAction.Internal.PolicyUpdateReceive,
     ) {
         // The vault timeout policy can only be implemented in organizations that have
         // the single organization policy, meaning that if this is enabled, the user is
@@ -472,13 +510,14 @@ class AccountSecurityViewModel @Inject constructor(
         val vaultTimeoutPolicy = action.vaultTimeoutPolicies?.firstOrNull()
         mutableStateFlow.update {
             it.copy(
-                vaultTimeoutPolicy = vaultTimeoutPolicy?.let { policy ->
-                    VaultTimeoutPolicy(
-                        minutes = policy.minutes,
-                        action = policy.action,
-                        type = policy.type,
-                    )
-                },
+                    vaultTimeoutPolicy =
+                            vaultTimeoutPolicy?.let { policy ->
+                                VaultTimeoutPolicy(
+                                        minutes = policy.minutes,
+                                        action = policy.action,
+                                        type = policy.type,
+                                )
+                            },
             )
         }
     }
@@ -497,380 +536,306 @@ class AccountSecurityViewModel @Inject constructor(
     private fun dismissUnlockNotificationBadge() {
         if (!state.shouldShowUnlockActionCard) return
         firstTimeActionManager.storeShowUnlockSettingBadge(
-            showBadge = false,
+                showBadge = false,
         )
     }
 }
 
-/**
- * Models state for the Account Security screen.
- */
+/** Models state for the Account Security screen. */
 @Parcelize
 data class AccountSecurityState(
-    val dialog: AccountSecurityDialog?,
-    val fingerprintPhrase: Text,
-    val isAuthenticatorSyncChecked: Boolean,
-    val isUnlockWithBiometricsEnabled: Boolean,
-    val isUnlockWithPasswordEnabled: Boolean,
-    val isUnlockWithPinEnabled: Boolean,
-    val shouldShowEnableAuthenticatorSync: Boolean,
-    val userId: String,
-    val vaultTimeout: VaultTimeout,
-    val vaultTimeoutAction: VaultTimeoutAction,
-    val vaultTimeoutPolicy: VaultTimeoutPolicy?,
-    val shouldShowUnlockActionCard: Boolean,
-    val removeUnlockWithPinPolicyEnabled: Boolean,
+        val dialog: AccountSecurityDialog?,
+        val fingerprintPhrase: Text,
+        val isAuthenticatorSyncChecked: Boolean,
+        val isUnlockWithBiometricsEnabled: Boolean,
+        val isUnlockWithPasswordEnabled: Boolean,
+        val isUnlockWithPinEnabled: Boolean,
+        val shouldShowEnableAuthenticatorSync: Boolean,
+        val userId: String,
+        val vaultTimeout: VaultTimeout,
+        val vaultTimeoutAction: VaultTimeoutAction,
+        val vaultTimeoutPolicy: VaultTimeoutPolicy?,
+        val shouldShowUnlockActionCard: Boolean,
+        val removeUnlockWithPinPolicyEnabled: Boolean,
 ) : Parcelable {
-    /**
-     * Indicates that there is a mechanism for unlocking your vault in place.
-     */
+    /** Indicates that there is a mechanism for unlocking your vault in place. */
     val hasUnlockMechanism: Boolean
-        get() = isUnlockWithPasswordEnabled ||
-            isUnlockWithPinEnabled ||
-            isUnlockWithBiometricsEnabled
+        get() =
+                isUnlockWithPasswordEnabled ||
+                        isUnlockWithPinEnabled ||
+                        isUnlockWithBiometricsEnabled
 
-    /**
-     * Indicates that the vault timeout action is enabled.
-     */
+    /** Indicates that the vault timeout action is enabled. */
     val isSessionTimeoutActionEnabled: Boolean
         get() = hasUnlockMechanism && vaultTimeoutPolicy?.action == null
 
-    /**
-     * The text to display for the session timeout.
-     */
+    /** The text to display for the session timeout. */
     val sessionTimeoutSupportText: Text?
-        get() = vaultTimeoutPolicy?.let { policy ->
-            when (policy.type) {
-                PolicyInformation.VaultTimeout.Type.NEVER -> {
-                    BitwardenString
-                        .your_organization_has_set_the_default_session_timeout_to_never
-                        .asText()
-                }
-
-                PolicyInformation.VaultTimeout.Type.ON_APP_RESTART,
-                PolicyInformation.VaultTimeout.Type.ON_SYSTEM_LOCK,
-                    -> {
-                    BitwardenString
-                        .your_organization_has_set_the_default_session_timeout_to_on_app_restart
-                        .asText()
-                }
-
-                PolicyInformation.VaultTimeout.Type.IMMEDIATELY -> {
-                    BitwardenString.this_setting_is_managed_by_your_organization.asText()
-                }
-
-                PolicyInformation.VaultTimeout.Type.CUSTOM,
-                null,
-                    -> {
-                    // Calculate the hours and minutes to show in the policy label.
-                    val hours = policy.minutes?.floorDiv(MINUTES_PER_HOUR).takeUnless { it == 0 }
-                    val minutes = policy.minutes?.mod(MINUTES_PER_HOUR).takeUnless { it == 0 }
-                    if (hours != null && minutes != null) {
-                        BitwardenString.vault_timeout_policy_in_effect_hours_minutes_format.asText(
-                            BitwardenPlurals.hours_format.asPluralsText(hours, hours),
-                            BitwardenPlurals.minutes_format.asPluralsText(minutes, minutes),
-                        )
-                    } else if (hours != null) {
-                        BitwardenString.vault_timeout_policy_in_effect_format.asText(
-                            BitwardenPlurals.hours_format.asPluralsText(hours, hours),
-                        )
-                    } else if (minutes != null) {
-                        BitwardenString.vault_timeout_policy_in_effect_format.asText(
-                            BitwardenPlurals.minutes_format.asPluralsText(minutes, minutes),
-                        )
-                    } else {
-                        null
+        get() =
+                vaultTimeoutPolicy?.let { policy ->
+                    when (policy.type) {
+                        PolicyInformation.VaultTimeout.Type.NEVER -> {
+                            BitwardenString
+                                    .your_organization_has_set_the_default_session_timeout_to_never
+                                    .asText()
+                        }
+                        PolicyInformation.VaultTimeout.Type.ON_APP_RESTART,
+                        PolicyInformation.VaultTimeout.Type.ON_SYSTEM_LOCK, -> {
+                            BitwardenString
+                                    .your_organization_has_set_the_default_session_timeout_to_on_app_restart
+                                    .asText()
+                        }
+                        PolicyInformation.VaultTimeout.Type.IMMEDIATELY -> {
+                            BitwardenString.this_setting_is_managed_by_your_organization.asText()
+                        }
+                        PolicyInformation.VaultTimeout.Type.CUSTOM, null, -> {
+                            // Calculate the hours and minutes to show in the policy label.
+                            val hours =
+                                    policy.minutes?.floorDiv(MINUTES_PER_HOUR).takeUnless {
+                                        it == 0
+                                    }
+                            val minutes =
+                                    policy.minutes?.mod(MINUTES_PER_HOUR).takeUnless { it == 0 }
+                            if (hours != null && minutes != null) {
+                                BitwardenString.vault_timeout_policy_in_effect_hours_minutes_format
+                                        .asText(
+                                                BitwardenPlurals.hours_format.asPluralsText(
+                                                        hours,
+                                                        hours
+                                                ),
+                                                BitwardenPlurals.minutes_format.asPluralsText(
+                                                        minutes,
+                                                        minutes
+                                                ),
+                                        )
+                            } else if (hours != null) {
+                                BitwardenString.vault_timeout_policy_in_effect_format.asText(
+                                        BitwardenPlurals.hours_format.asPluralsText(hours, hours),
+                                )
+                            } else if (minutes != null) {
+                                BitwardenString.vault_timeout_policy_in_effect_format.asText(
+                                        BitwardenPlurals.minutes_format.asPluralsText(
+                                                minutes,
+                                                minutes
+                                        ),
+                                )
+                            } else {
+                                null
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-    /**
-     * The text to display for the session timeout action.
-     */
+    /** The text to display for the session timeout action. */
     val sessionTimeoutActionSupportingText: Text?
-        get() = if (vaultTimeoutPolicy?.action != null) {
-            BitwardenString.this_setting_is_managed_by_your_organization.asText()
-        } else if (!hasUnlockMechanism) {
-            BitwardenString.set_up_an_unlock_option_to_change_your_vault_timeout_action.asText()
-        } else {
-            null
-        }
+        get() =
+                if (vaultTimeoutPolicy?.action != null) {
+                    BitwardenString.this_setting_is_managed_by_your_organization.asText()
+                } else if (!hasUnlockMechanism) {
+                    BitwardenString.set_up_an_unlock_option_to_change_your_vault_timeout_action
+                            .asText()
+                } else {
+                    null
+                }
 }
 
-/**
- * Models the vault timeout policy.
- */
+/** Models the vault timeout policy. */
 @Parcelize
 data class VaultTimeoutPolicy(
-    val minutes: Int?,
-    val action: PolicyInformation.VaultTimeout.Action?,
-    val type: PolicyInformation.VaultTimeout.Type?,
+        val minutes: Int?,
+        val action: PolicyInformation.VaultTimeout.Action?,
+        val type: PolicyInformation.VaultTimeout.Type?,
 ) : Parcelable
 
-/**
- * Representation of the dialogs that can be displayed on account security screen.
- */
+/** Representation of the dialogs that can be displayed on account security screen. */
 sealed class AccountSecurityDialog : Parcelable {
-    /**
-     * Allows the user to confirm that they want to logout.
-     */
-    @Parcelize
-    data object ConfirmLogout : AccountSecurityDialog()
+    /** Allows the user to confirm that they want to logout. */
+    @Parcelize data object ConfirmLogout : AccountSecurityDialog()
 
-    /**
-     * Allows the user to view their fingerprint phrase.
-     */
-    @Parcelize
-    data object FingerprintPhrase : AccountSecurityDialog()
+    /** Allows the user to view their fingerprint phrase. */
+    @Parcelize data object FingerprintPhrase : AccountSecurityDialog()
 
-    /**
-     * Displays a loading dialog.
-     */
+    /** Displays a loading dialog. */
     @Parcelize
     data class Loading(
-        val message: Text,
+            val message: Text,
     ) : AccountSecurityDialog()
 
-    /**
-     * Displays an error dialog with a title and message.
-     */
+    /** Displays an error dialog with a title and message. */
     @Parcelize
     data class Error(
-        val title: Text,
-        val message: Text,
+            val title: Text,
+            val message: Text,
     ) : AccountSecurityDialog()
 }
 
-/**
- * Models events for the account security screen.
- */
+/** Models events for the account security screen. */
 sealed class AccountSecurityEvent {
-    /**
-     * Navigate back.
-     */
+    /** Navigate back. */
     data object NavigateBack : AccountSecurityEvent()
 
-    /**
-     * Navigate to the application's settings screen.
-     */
+    /** Navigate to the application's settings screen. */
     data object NavigateToApplicationDataSettings : AccountSecurityEvent()
 
-    /**
-     * Navigate to the delete account screen.
-     */
+    /** Navigate to the delete account screen. */
     data object NavigateToDeleteAccount : AccountSecurityEvent()
 
-    /**
-     * Navigate to fingerprint phrase information.
-     */
+    /** Navigate to fingerprint phrase information. */
     data object NavigateToFingerprintPhrase : AccountSecurityEvent()
 
-    /**
-     * Navigate to the Pending Login Requests screen.
-     */
+    /** Navigate to the Pending Login Requests screen. */
     data object NavigateToPendingRequests : AccountSecurityEvent()
 
-    /**
-     * Navigate to the two step login screen.
-     */
+    /** Navigate to the two step login screen. */
     data class NavigateToTwoStepLogin(val url: String) : AccountSecurityEvent()
 
-    /**
-     * Navigate to the change master password screen.
-     */
+    /** Navigate to the device management page. */
+    data class NavigateToDeviceManagement(val url: String) : AccountSecurityEvent()
+
+    /** Navigate to the security keys page. */
+    data object NavigateToSecurityKeys : AccountSecurityEvent()
+
+    data object NavigateToChangeEmail : AccountSecurityEvent()
+
+    data object NavigateToChangeUsername : AccountSecurityEvent()
+
+    /** Navigate to the change master password screen. */
     data object NavigateToChangeMasterPassword : AccountSecurityEvent()
 
-    /**
-     * Shows the prompt for biometrics using with the given [cipher].
-     */
+    /** Shows the prompt for biometrics using with the given [cipher]. */
     data class ShowBiometricsPrompt(
-        val cipher: Cipher,
+            val cipher: Cipher,
     ) : AccountSecurityEvent()
 
-    /**
-     * Navigate to the setup unlock screen.
-     */
+    /** Navigate to the setup unlock screen. */
     data object NavigateToSetupUnlockScreen : AccountSecurityEvent()
 }
 
-/**
- * Models actions for the account security screen.
- */
+/** Models actions for the account security screen. */
 sealed class AccountSecurityAction {
 
-    /**
-     * User clicked account fingerprint phrase.
-     */
+    /** User clicked account fingerprint phrase. */
     data object AccountFingerprintPhraseClick : AccountSecurityAction()
 
-    /**
-     * User clicked the authenticator sync toggle.
-     */
+    /** User clicked the authenticator sync toggle. */
     data class AuthenticatorSyncToggle(
-        val enabled: Boolean,
+            val enabled: Boolean,
     ) : AccountSecurityAction()
 
-    /**
-     * User clicked back button.
-     */
+    /** User clicked back button. */
     data object BackClick : AccountSecurityAction()
 
-    /**
-     * User clicked change master password.
-     */
+    /** User clicked change master password. */
     data object ChangeMasterPasswordClick : AccountSecurityAction()
 
-    /**
-     * User confirmed they want to logout.
-     */
+    /** User confirmed they want to logout. */
     data object ConfirmLogoutClick : AccountSecurityAction()
 
-    /**
-     * User clicked delete account.
-     */
+    /** User clicked delete account. */
     data object DeleteAccountClick : AccountSecurityAction()
 
-    /**
-     * User dismissed the currently displayed dialog.
-     */
+    /** User dismissed the currently displayed dialog. */
     data object DismissDialog : AccountSecurityAction()
 
-    /**
-     * The user clicked to enable biometrics.
-     */
+    /** The user clicked to enable biometrics. */
     data object EnableBiometricsClick : AccountSecurityAction()
 
-    /**
-     * User clicked fingerprint phrase.
-     */
+    /** User clicked fingerprint phrase. */
     data object FingerPrintLearnMoreClick : AccountSecurityAction()
 
-    /**
-     * User clicked lock now.
-     */
+    /** User clicked lock now. */
     data object LockNowClick : AccountSecurityAction()
 
-    /**
-     * User clicked log out.
-     */
+    /** User clicked log out. */
     data object LogoutClick : AccountSecurityAction()
 
-    /**
-     * User clicked pending login requests.
-     */
+    /** User clicked pending login requests. */
     data object PendingLoginRequestsClick : AccountSecurityAction()
 
-    /**
-     * User selected a [vaultTimeoutType].
-     */
+    /** User selected a [vaultTimeoutType]. */
     data class VaultTimeoutTypeSelect(
-        val vaultTimeoutType: VaultTimeout.Type,
+            val vaultTimeoutType: VaultTimeout.Type,
     ) : AccountSecurityAction()
 
-    /**
-     * User selected an updated [VaultTimeout.Custom].
-     */
+    /** User selected an updated [VaultTimeout.Custom]. */
     data class CustomVaultTimeoutSelect(
-        val customVaultTimeout: VaultTimeout.Custom,
+            val customVaultTimeout: VaultTimeout.Custom,
     ) : AccountSecurityAction()
 
-    /**
-     * User selected a [VaultTimeoutAction].
-     */
+    /** User selected a [VaultTimeoutAction]. */
     data class VaultTimeoutActionSelect(
-        val vaultTimeoutAction: VaultTimeoutAction,
+            val vaultTimeoutAction: VaultTimeoutAction,
     ) : AccountSecurityAction()
 
-    /**
-     * User clicked two-step login.
-     */
+    /** User clicked two-step login. */
     data object TwoStepLoginClick : AccountSecurityAction()
 
-    /**
-     * User toggled the unlock with biometrics switch to off.
-     */
+    /** User clicked device management. */
+    data object DeviceManagementClick : AccountSecurityAction()
+
+    /** User clicked security keys. */
+    data object SecurityKeysClick : AccountSecurityAction()
+
+    data object ChangeEmailClick : AccountSecurityAction()
+
+    data object ChangeUsernameClick : AccountSecurityAction()
+
+    /** User toggled the unlock with biometrics switch to off. */
     data object UnlockWithBiometricToggleDisabled : AccountSecurityAction()
 
-    /**
-     * User toggled the unlock with biometrics switch to on.
-     */
+    /** User toggled the unlock with biometrics switch to on. */
     data class UnlockWithBiometricToggleEnabled(
-        val cipher: Cipher,
+            val cipher: Cipher,
     ) : AccountSecurityAction()
 
-    /**
-     * User confirmed the push notification permission prompt.
-     */
+    /** User confirmed the push notification permission prompt. */
     data object PushNotificationConfirm : AccountSecurityAction()
 
-    /**
-     * User toggled the unlock with pin switch.
-     */
+    /** User toggled the unlock with pin switch. */
     data class UnlockWithPinToggle(
-        val unlockWithPinState: UnlockWithPinState,
+            val unlockWithPinState: UnlockWithPinState,
     ) : AccountSecurityAction()
 
-    /**
-     * User has dismissed the unlock action card.
-     */
+    /** User has dismissed the unlock action card. */
     data object UnlockActionCardDismiss : AccountSecurityAction()
 
-    /**
-     * User has clicked the CTA on the unlock action card.
-     */
+    /** User has clicked the CTA on the unlock action card. */
     data object UnlockActionCardCtaClick : AccountSecurityAction()
 
-    /**
-     * Models actions that can be sent by the view model itself.
-     */
+    /** Models actions that can be sent by the view model itself. */
     sealed class Internal : AccountSecurityAction() {
 
-        /**
-         * A biometrics key result has been received.
-         */
+        /** A biometrics key result has been received. */
         data class BiometricsKeyResultReceive(
-            val result: BiometricsKeyResult,
+                val result: BiometricsKeyResult,
         ) : Internal()
 
-        /**
-         * A fingerprint has been received.
-         */
+        /** A fingerprint has been received. */
         data class FingerprintResultReceive(
-            val fingerprintResult: UserFingerprintResult,
+                val fingerprintResult: UserFingerprintResult,
         ) : Internal()
 
-        /**
-         * A policy update has been received.
-         */
+        /** A policy update has been received. */
         data class PolicyUpdateReceive(
-            val vaultTimeoutPolicies: List<PolicyInformation.VaultTimeout>?,
+                val vaultTimeoutPolicies: List<PolicyInformation.VaultTimeout>?,
         ) : Internal()
 
-        /**
-         * A remove pin policy update has been received.
-         */
+        /** A remove pin policy update has been received. */
         data class RemovePinPolicyUpdateReceive(
-            val removeUnlockWithPinPolicyEnabled: Boolean,
+                val removeUnlockWithPinPolicyEnabled: Boolean,
         ) : Internal()
 
-        /**
-         * The show unlock badge update has been received.
-         */
+        /** The show unlock badge update has been received. */
         data class ShowUnlockBadgeUpdated(val showUnlockBadge: Boolean) : Internal()
 
-        /**
-         * The user's biometric unlock status has been updated.
-         */
+        /** The user's biometric unlock status has been updated. */
         data class BiometricLockUpdate(
-            val isBiometricEnabled: Boolean,
+                val isBiometricEnabled: Boolean,
         ) : Internal()
 
-        /**
-         * The user's pin unlock status has been updated.
-         */
+        /** The user's pin unlock status has been updated. */
         data class PinProtectedLockUpdate(
-            val isPinProtected: Boolean,
+                val isPinProtected: Boolean,
         ) : Internal()
     }
 }

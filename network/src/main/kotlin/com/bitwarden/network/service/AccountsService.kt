@@ -125,4 +125,13 @@ interface AccountsService {
      * Update the KDF settings for the current account.
      */
     suspend fun updateKdf(body: UpdateKdfJsonRequest): Result<Unit>
+
+    /** Step 1: send a verification code to the new email address. */
+    suspend fun requestEmailToken(masterPasswordHash: String, newEmail: String): Result<Unit>
+
+    /** Step 2: confirm the email change with the verification code. */
+    suspend fun changeEmail(masterPasswordHash: String, newEmail: String, token: String): Result<Unit>
+
+    /** Update the user's profile name/username. */
+    suspend fun updateProfile(name: String?): Result<String?>
 }
