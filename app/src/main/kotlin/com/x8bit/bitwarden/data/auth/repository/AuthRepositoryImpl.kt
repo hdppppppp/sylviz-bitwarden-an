@@ -935,6 +935,8 @@ class AuthRepositoryImpl(
                         ),
                     )
                 } else {
+                    // Try the new register/finish endpoint first; fall back to the legacy
+                    // /accounts/register endpoint for Vaultwarden compatibility.
                     identityService.registerFinish(
                         body = RegisterFinishRequestJson(
                             email = email,
@@ -949,7 +951,23 @@ class AuthRepositoryImpl(
                             kdfType = kdf.toKdfTypeJson(),
                             kdfIterations = kdf.iterations,
                         ),
-                    )
+                    ).recoverCatching {
+                        // Vaultwarden does not support register/finish; fall back to legacy register
+                        identityService.register(
+                            body = RegisterRequestJson(
+                                email = email,
+                                masterPasswordHash = registerKeyResponse.masterPasswordHash,
+                                masterPasswordHint = masterPasswordHint,
+                                key = registerKeyResponse.encryptedUserKey,
+                                keys = RegisterRequestJson.Keys(
+                                    publicKey = registerKeyResponse.keys.public,
+                                    encryptedPrivateKey = registerKeyResponse.keys.private,
+                                ),
+                                kdfType = kdf.toKdfTypeJson(),
+                                kdfIterations = kdf.iterations,
+                            ),
+                        ).getOrThrow()
+                    }
                 }
             }
             .fold(
@@ -1438,7 +1456,10 @@ class AuthRepositoryImpl(
                         }
                     }
                 },
-                onFailure = { SendVerificationEmailResult.Error(errorMessage = null, error = it) },
+                // Vaultwarden does not support the email verification flow.
+                // Return a null token so the app skips email verification and goes
+                // directly to the complete-registration screen.
+                onFailure = { SendVerificationEmailResult.Success(emailVerificationToken = null) },
             )
 
     override suspend fun validateEmailToken(email: String, token: String): EmailTokenResult {
@@ -1635,10 +1656,8 @@ class AuthRepositoryImpl(
             onFailure = { throwable ->
                 when {
                     throwable.isSslHandShakeError() -> LoginResult.CertificateError
-                    configDiskSource.serverConfig?.isOfficialBitwardenServer == false -> {
-                        LoginResult.UnofficialServerError
-                    }
-
+                    // Skip UnofficialServerError for self-hosted/Vaultwarden servers;
+                    // show the actual error instead so users know what went wrong.
                     else -> LoginResult.Error(
                         errorMessage = null,
                         error = throwable,

@@ -27,8 +27,9 @@ internal interface SendsApi {
 
     /**
      * Create a file send.
+     * Vaultwarden uses "sends/file" instead of "sends/file/v2".
      */
-    @POST("sends/file/v2")
+    @POST("sends/file")
     suspend fun createFileSend(
         @Body body: SendJsonRequest,
     ): NetworkResult<CreateFileSendResponseJson>

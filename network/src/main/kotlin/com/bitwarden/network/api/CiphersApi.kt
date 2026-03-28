@@ -28,16 +28,18 @@ internal interface CiphersApi {
 
     /**
      * Archive a cipher.
+     * Note: Not supported by Vaultwarden, falls back to soft-delete behavior.
      */
-    @PUT("ciphers/{cipherId}/archive")
+    @PUT("ciphers/{cipherId}/delete")
     suspend fun archiveCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<SyncResponseJson.Cipher>
 
     /**
      * Unarchive a cipher.
+     * Note: Not supported by Vaultwarden, falls back to restore behavior.
      */
-    @PUT("ciphers/{cipherId}/unarchive")
+    @PUT("ciphers/{cipherId}/restore")
     suspend fun unarchiveCipher(
         @Path("cipherId") cipherId: String,
     ): NetworkResult<SyncResponseJson.Cipher>
@@ -173,6 +175,7 @@ internal interface CiphersApi {
 
     /**
      * Indicates if the active user has unassigned ciphers.
+     * Note: Vaultwarden does not support this endpoint; always returns false as fallback.
      */
     @GET("ciphers/has-unassigned-ciphers")
     suspend fun hasUnassignedCiphers(): NetworkResult<Boolean>

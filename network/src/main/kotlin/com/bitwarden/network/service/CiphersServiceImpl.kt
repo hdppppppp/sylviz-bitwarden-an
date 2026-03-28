@@ -289,6 +289,8 @@ internal class CiphersServiceImpl(
         ciphersApi
             .hasUnassignedCiphers()
             .toResult()
+            // Vaultwarden does not support this endpoint; treat failure as "no unassigned ciphers"
+            .recoverCatching { false }
 
     override suspend fun importCiphers(
         request: ImportCiphersJsonRequest,
