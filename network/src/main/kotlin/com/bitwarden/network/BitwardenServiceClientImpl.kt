@@ -171,7 +171,7 @@ internal class BitwardenServiceClientImpl(
     override val haveIBeenPwnedService: HaveIBeenPwnedService by lazy {
         HaveIBeenPwnedServiceImpl(
             api = retrofits
-                .createStaticRetrofit(baseUrl = "https://api.pwnedpasswords.com")
+                .createStaticRetrofit(baseUrl = "https://api.pwnedpasswords.com/")
                 .create(),
         )
     }
