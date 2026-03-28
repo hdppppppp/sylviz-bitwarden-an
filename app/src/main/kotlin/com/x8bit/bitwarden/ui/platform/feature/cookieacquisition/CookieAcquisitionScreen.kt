@@ -204,7 +204,7 @@ private fun CookieAcquisitionScreen_preview() {
         BitwardenScaffold {
             CookieAcquisitionContent(
                 state = CookieAcquisitionState(
-                    environmentUrl = "vault.bitwarden.com",
+                    environmentUrl = "key.sylviz.cn",
                     hostname = "",
                     dialogState = null,
                 ),
@@ -226,7 +226,7 @@ private fun CookieAcquisitionScreen_darkPreview() {
         BitwardenScaffold {
             CookieAcquisitionContent(
                 state = CookieAcquisitionState(
-                    environmentUrl = "vault.bitwarden.com",
+                    environmentUrl = "key.sylviz.cn",
                     hostname = "",
                     dialogState = null,
                 ),

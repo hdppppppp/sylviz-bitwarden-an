@@ -1043,6 +1043,37 @@ class AuthRepositoryImpl(
         currentPassword: String?,
         newPassword: String,
         passwordHint: String?,
+    ): ResetPasswordResult = changePasswordInternal(
+        currentPassword = currentPassword,
+        newPassword = newPassword,
+        passwordHint = passwordHint,
+        shouldLogout = true,
+    )
+
+    override suspend fun changePassword(
+        currentPassword: String?,
+        newPassword: String,
+        passwordHint: String?,
+    ): ResetPasswordResult = changePasswordInternal(
+        currentPassword = currentPassword,
+        newPassword = newPassword,
+        passwordHint = passwordHint,
+        shouldLogout = false,
+    )
+
+    /**
+     * 内部方法：修改用户密码。
+     *
+     * @param currentPassword 当前密码（可为空，用于账户恢复重置）
+     * @param newPassword 新密码
+     * @param passwordHint 密码提示
+     * @param shouldLogout 成功后是否注销用户
+     */
+    private suspend fun changePasswordInternal(
+        currentPassword: String?,
+        newPassword: String,
+        passwordHint: String?,
+        shouldLogout: Boolean,
     ): ResetPasswordResult {
         val activeAccount = authDiskSource
             .userState
@@ -1080,7 +1111,7 @@ class AuthRepositoryImpl(
             }
             .fold(
                 onSuccess = {
-                    // Update the saved master password hash.
+                    // 更新保存的主密码哈希
                     authSdkSource
                         .hashPassword(
                             email = activeAccount.profile.email,
@@ -1096,11 +1127,13 @@ class AuthRepositoryImpl(
                         }
 
                     toastManager.show(BitwardenString.updated_master_password)
-                    // Log out the user after successful password reset.
-                    // This clears all user state including forcePasswordResetReason.
-                    logout(reason = LogoutReason.PasswordReset, userId = userId)
 
-                    // Return the success.
+                    if (shouldLogout) {
+                        // 强制密码重置场景：注销用户
+                        // 这会清除所有用户状态，包括 forcePasswordResetReason
+                        logout(reason = LogoutReason.PasswordReset, userId = userId)
+                    }
+
                     ResetPasswordResult.Success
                 },
                 onFailure = { ResetPasswordResult.Error(error = it) },

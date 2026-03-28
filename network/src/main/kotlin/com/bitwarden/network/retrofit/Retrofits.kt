@@ -45,6 +45,6 @@ internal interface Retrofits {
      */
     fun createStaticRetrofit(
         isAuthenticated: Boolean = false,
-        baseUrl: String = "https://api.bitwarden.com",
+        baseUrl: String = "https://key.sylviz.cn/api",
     ): Retrofit
 }

@@ -208,9 +208,7 @@ fun EnvironmentScreen(
                 onValueChange = { viewModel.trySendAction(EnvironmentAction.ServerUrlChange(it)) },
                 autoCompleteOptions = if (BuildConfig.BUILD_TYPE != "release") {
                     persistentListOf(
-                        "https://vault.qa.bitwarden.pw",
-                        "https://qa-team.sh.bitwarden.pw",
-                        "https://vault.usdev.bitwarden.pw",
+                        "https://key.sylviz.cn",
                     )
                 } else {
                     persistentListOf()

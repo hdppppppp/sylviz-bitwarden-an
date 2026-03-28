@@ -14,8 +14,13 @@ import com.bitwarden.ui.platform.base.util.composableWithSlideTransitions
 import com.bitwarden.ui.platform.util.ParcelableRouteSerializer
 import com.x8bit.bitwarden.ui.platform.feature.settings.about.aboutDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.about.navigateToAbout
+import com.x8bit.bitwarden.ui.platform.feature.settings.helpcenter.helpCenterDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.helpcenter.navigateToHelpCenter
+import com.x8bit.bitwarden.ui.platform.feature.settings.privacypolicy.privacyPolicyDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.privacypolicy.navigateToPrivacyPolicy
 import com.x8bit.bitwarden.ui.platform.feature.settings.accountsecurity.accountSecurityDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.accountsecurity.navigateToAccountSecurity
+import com.x8bit.bitwarden.ui.platform.feature.settings.changemasterpassword.navigateToChangeMasterPassword
 import com.x8bit.bitwarden.ui.platform.feature.settings.appearance.appearanceDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.appearance.navigateToAppearance
 import com.x8bit.bitwarden.ui.platform.feature.settings.autofill.autoFillDestination
@@ -130,12 +135,21 @@ fun NavGraphBuilder.settingsGraph(
         aboutDestination(
             isPreAuth = false,
             onNavigateBack = { navController.popBackStack() },
+            onNavigateToHelpCenter = { navController.navigateToHelpCenter() },
+            onNavigateToPrivacyPolicy = { navController.navigateToPrivacyPolicy() },
+        )
+        helpCenterDestination(
+            onNavigateBack = { navController.popBackStack() },
+        )
+        privacyPolicyDestination(
+            onNavigateBack = { navController.popBackStack() },
         )
         accountSecurityDestination(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToDeleteAccount = onNavigateToDeleteAccount,
             onNavigateToPendingRequests = onNavigateToPendingRequests,
             onNavigateToSetupUnlockScreen = onNavigateToSetupUnlockScreen,
+            onNavigateToChangeMasterPassword = { navController.navigateToChangeMasterPassword() },
         )
         appearanceDestination(
             isPreAuth = false,
@@ -196,6 +210,14 @@ fun NavGraphBuilder.preAuthSettingsDestinations(
     )
     aboutDestination(
         isPreAuth = true,
+        onNavigateBack = { navController.popBackStack() },
+        onNavigateToHelpCenter = { navController.navigateToHelpCenter() },
+        onNavigateToPrivacyPolicy = { navController.navigateToPrivacyPolicy() },
+    )
+    helpCenterDestination(
+        onNavigateBack = { navController.popBackStack() },
+    )
+    privacyPolicyDestination(
         onNavigateBack = { navController.popBackStack() },
     )
 }

@@ -77,103 +77,28 @@ class AboutViewModelTest : BaseViewModelTest() {
     }
 
     @Test
-    fun `on FlightRecorderTooltipClick should emit NavigateToFlightRecorderHelp`() = runTest {
-        val viewModel = createViewModel()
-        viewModel.eventFlow.test {
-            viewModel.trySendAction(AboutAction.FlightRecorderTooltipClick)
-            assertEquals(AboutEvent.NavigateToFlightRecorderHelp, awaitItem())
-        }
-    }
-
-    @Suppress("MaxLineLength")
-    @Test
-    fun `on FlightRecorderCheckedChange with isEnabled true should emit NavigateToFlightRecorder`() =
-        runTest {
-            val viewModel = createViewModel()
-            viewModel.eventFlow.test {
-                viewModel.trySendAction(AboutAction.FlightRecorderCheckedChange(isEnabled = true))
-                assertEquals(AboutEvent.NavigateToFlightRecorder, awaitItem())
-            }
-        }
-
-    @Test
-    fun `on FlightRecorderCheckedChange with isEnabled false should end the logging`() {
-        every { settingsRepository.endFlightRecorder() } just runs
-        val viewModel = createViewModel()
-        viewModel.trySendAction(AboutAction.FlightRecorderCheckedChange(isEnabled = false))
-        verify(exactly = 1) {
-            settingsRepository.endFlightRecorder()
-        }
-    }
-
-    @Test
-    fun `on ViewRecordedLogsClick should emit NavigateToRecordedLogs`() = runTest {
-        val viewModel = createViewModel()
-        viewModel.eventFlow.test {
-            viewModel.trySendAction(AboutAction.ViewRecordedLogsClick)
-            assertEquals(AboutEvent.NavigateToRecordedLogs, awaitItem())
-        }
-    }
-
-    @Test
-    fun `on FlightRecorderDataReceive should update state appropriately`() = runTest {
-        val viewModel = createViewModel(DEFAULT_ABOUT_STATE)
-        mockkStatic(FlightRecorderDataSet::getStopsLoggingStringForActiveLog)
-        val activeData = mockk<FlightRecorderDataSet> {
-            every {
-                getStopsLoggingStringForActiveLog(FIXED_CLOCK)
-            } returns "Stops at 10 PM".asText()
-            every { hasActiveFlightRecorderData } returns true
-        }
-        val inactiveData = mockk<FlightRecorderDataSet> {
-            every { getStopsLoggingStringForActiveLog(FIXED_CLOCK) } returns null
-            every { hasActiveFlightRecorderData } returns false
-        }
-
-        viewModel.stateFlow.test {
-            assertEquals(DEFAULT_ABOUT_STATE, awaitItem())
-
-            mutableFlightRecorderFlow.value = activeData
-            assertEquals(
-                DEFAULT_ABOUT_STATE.copy(
-                    isFlightRecorderEnabled = true,
-                    flightRecorderSubtext = "Stops at 10 PM".asText(),
-                ),
-                awaitItem(),
-            )
-
-            mutableFlightRecorderFlow.value = inactiveData
-            assertEquals(DEFAULT_ABOUT_STATE, awaitItem())
-        }
-    }
-
-    @Test
     fun `on HelpCenterClick should emit NavigateToHelpCenter`() = runTest {
+        val mockNavigate: () -> Unit = mockk(relaxed = true)
         val viewModel = createViewModel(DEFAULT_ABOUT_STATE)
         viewModel.eventFlow.test {
-            viewModel.trySendAction(AboutAction.HelpCenterClick)
-            assertEquals(AboutEvent.NavigateToHelpCenter, awaitItem())
+            viewModel.trySendAction(AboutAction.HelpCenterClick(mockNavigate))
+            val event = awaitItem() as AboutEvent.NavigateToHelpCenter
+            event.onNavigate()
+            verify { mockNavigate() }
         }
     }
 
     @Test
     fun `on PrivacyPolicyClick should emit NavigateToPrivacyPolicy`() = runTest {
+        val mockNavigate: () -> Unit = mockk(relaxed = true)
         val viewModel = createViewModel(DEFAULT_ABOUT_STATE)
         viewModel.eventFlow.test {
-            viewModel.trySendAction(AboutAction.PrivacyPolicyClick)
-            assertEquals(AboutEvent.NavigateToPrivacyPolicy, awaitItem())
+            viewModel.trySendAction(AboutAction.PrivacyPolicyClick(mockNavigate))
+            val event = awaitItem() as AboutEvent.NavigateToPrivacyPolicy
+            event.onNavigate()
+            verify { mockNavigate() }
         }
     }
-
-    @Test
-    fun `on LearnAboutOrganizationsClick should emit NavigateToLearnAboutOrganizations`() =
-        runTest {
-            val viewModel = createViewModel(DEFAULT_ABOUT_STATE)
-            viewModel.eventFlow.test {
-                viewModel.trySendAction(AboutAction.LearnAboutOrganizationsClick)
-                assertEquals(AboutEvent.NavigateToLearnAboutOrganizations, awaitItem())
-            }
-        }
 
     @Test
     fun `on SubmitCrashLogsClick should update isSubmitCrashLogsEnabled to true`() = runTest {

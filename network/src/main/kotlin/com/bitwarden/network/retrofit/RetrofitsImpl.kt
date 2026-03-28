@@ -108,7 +108,7 @@ internal class RetrofitsImpl(
 
     private val baseRetrofit: Retrofit by lazy {
         baseRetrofitBuilder
-            .baseUrl("https://api.bitwarden.com")
+            .baseUrl("https://key.sylviz.cn/api")
             .build()
     }
 

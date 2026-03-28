@@ -72,9 +72,8 @@ class AboutViewModel @Inject constructor(
 
     override fun handleAction(action: AboutAction): Unit = when (action) {
         AboutAction.BackClick -> handleBackClick()
-        AboutAction.HelpCenterClick -> handleHelpCenterClick()
-        AboutAction.PrivacyPolicyClick -> handlePrivacyPolicyClick()
-        AboutAction.LearnAboutOrganizationsClick -> handleLearnAboutOrganizationsClick()
+        is AboutAction.HelpCenterClick -> handleHelpCenterClick(action)
+        is AboutAction.PrivacyPolicyClick -> handlePrivacyPolicyClick(action)
         is AboutAction.SubmitCrashLogsClick -> handleSubmitCrashLogsClick(action)
         AboutAction.VersionClick -> handleVersionClick()
         AboutAction.WebVaultClick -> handleWebVaultClick()
@@ -84,16 +83,12 @@ class AboutViewModel @Inject constructor(
         sendEvent(AboutEvent.NavigateBack)
     }
 
-    private fun handleHelpCenterClick() {
-        sendEvent(AboutEvent.NavigateToHelpCenter)
+    private fun handleHelpCenterClick(action: AboutAction.HelpCenterClick) {
+        sendEvent(AboutEvent.NavigateToHelpCenter(action.onNavigate))
     }
 
-    private fun handlePrivacyPolicyClick() {
-        sendEvent(AboutEvent.NavigateToPrivacyPolicy)
-    }
-
-    private fun handleLearnAboutOrganizationsClick() {
-        sendEvent(AboutEvent.NavigateToLearnAboutOrganizations)
+    private fun handlePrivacyPolicyClick(action: AboutAction.PrivacyPolicyClick) {
+        sendEvent(AboutEvent.NavigateToPrivacyPolicy(action.onNavigate))
     }
 
     private fun handleSubmitCrashLogsClick(action: AboutAction.SubmitCrashLogsClick) {
@@ -155,17 +150,12 @@ sealed class AboutEvent {
     /**
      * Navigates to the help center.
      */
-    data object NavigateToHelpCenter : AboutEvent()
+    data class NavigateToHelpCenter(val onNavigate: () -> Unit) : AboutEvent()
 
     /**
      * Navigates to the private policy.
      */
-    data object NavigateToPrivacyPolicy : AboutEvent()
-
-    /**
-     * Navigates to learn about organizations.
-     */
-    data object NavigateToLearnAboutOrganizations : AboutEvent()
+    data class NavigateToPrivacyPolicy(val onNavigate: () -> Unit) : AboutEvent()
 
     /**
      * Navigates to the web vault.
@@ -185,17 +175,12 @@ sealed class AboutAction {
     /**
      *  User clicked the helper center row.
      */
-    data object HelpCenterClick : AboutAction()
+    data class HelpCenterClick(val onNavigate: () -> Unit) : AboutAction()
 
     /**
      * User clicked the privacy policy row.
      */
-    data object PrivacyPolicyClick : AboutAction()
-
-    /**
-     * User clicked the learn about organizations row.
-     */
-    data object LearnAboutOrganizationsClick : AboutAction()
+    data class PrivacyPolicyClick(val onNavigate: () -> Unit) : AboutAction()
 
     /**
      * User clicked the submit crash logs toggle.

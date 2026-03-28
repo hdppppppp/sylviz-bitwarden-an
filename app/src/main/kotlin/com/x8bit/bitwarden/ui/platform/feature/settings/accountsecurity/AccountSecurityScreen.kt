@@ -85,6 +85,7 @@ fun AccountSecurityScreen(
     onNavigateToDeleteAccount: () -> Unit,
     onNavigateToPendingRequests: () -> Unit,
     onNavigateToSetupUnlockScreen: () -> Unit,
+    onNavigateToChangeMasterPassword: () -> Unit,
     viewModel: AccountSecurityViewModel = hiltViewModel(),
     biometricsManager: BiometricsManager = LocalBiometricsManager.current,
     intentManager: IntentManager = LocalIntentManager.current,
@@ -115,7 +116,7 @@ fun AccountSecurityScreen(
             }
 
             is AccountSecurityEvent.NavigateToChangeMasterPassword -> {
-                intentManager.launchUri(event.url.toUri())
+                onNavigateToChangeMasterPassword()
             }
 
             is AccountSecurityEvent.ShowBiometricsPrompt -> {
@@ -363,18 +364,14 @@ fun AccountSecurityScreen(
                     .fillMaxWidth(),
             )
             if (state.isUnlockWithPasswordEnabled) {
-                BitwardenExternalLinkRow(
+                BitwardenTextRow(
                     text = stringResource(id = BitwardenString.change_master_password),
-                    onConfirmClick = {
+                    onClick = {
                         viewModel.trySendAction(AccountSecurityAction.ChangeMasterPasswordClick)
                     },
-                    withDivider = false,
-                    dialogTitle = stringResource(id = BitwardenString.continue_to_web_app),
-                    dialogMessage = stringResource(
-                        id = BitwardenString.change_master_password_description_long,
-                    ),
                     cardStyle = CardStyle.Middle(),
                     modifier = Modifier
+                        .testTag("ChangeMasterPasswordLabel")
                         .standardHorizontalMargin()
                         .fillMaxWidth(),
                 )

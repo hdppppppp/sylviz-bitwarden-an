@@ -76,35 +76,35 @@ data class EnvironmentUrlDataJson(
          * Xamarin app.
          */
         val DEFAULT_LEGACY_US: EnvironmentUrlDataJson = EnvironmentUrlDataJson(
-            base = "https://vault.bitwarden.com",
+            base = "https://key.sylviz.cn",
             keyUri = null,
-            api = "https://api.bitwarden.com",
-            identity = "https://identity.bitwarden.com",
-            icon = "https://icons.bitwarden.net",
-            notifications = "https://notifications.bitwarden.com",
-            webVault = "https://vault.bitwarden.com",
-            events = "https://events.bitwarden.com",
+            api = "https://key.sylviz.cn/api",
+            identity = "https://key.sylviz.cn/identity",
+            icon = "https://key.sylviz.cn/icons",
+            notifications = "https://key.sylviz.cn/notifications",
+            webVault = "https://key.sylviz.cn",
+            events = "https://key.sylviz.cn/events",
         )
 
         /**
          * Default [EnvironmentUrlDataJson] for the EU region.
          */
         val DEFAULT_EU: EnvironmentUrlDataJson =
-            EnvironmentUrlDataJson(base = "https://vault.bitwarden.eu")
+            EnvironmentUrlDataJson(base = "https://key.sylviz.cn")
 
         /**
          * Default [EnvironmentUrlDataJson] for the EU region as written to disk by the legacy
          * Xamarin app.
          */
         val DEFAULT_LEGACY_EU: EnvironmentUrlDataJson = EnvironmentUrlDataJson(
-            base = "https://vault.bitwarden.eu",
+            base = "https://key.sylviz.cn",
             keyUri = null,
-            api = "https://api.bitwarden.eu",
-            identity = "https://identity.bitwarden.eu",
-            icon = "https://icons.bitwarden.eu",
-            notifications = "https://notifications.bitwarden.eu",
-            webVault = "https://vault.bitwarden.eu",
-            events = "https://events.bitwarden.eu",
+            api = "https://key.sylviz.cn/api",
+            identity = "https://key.sylviz.cn/identity",
+            icon = "https://key.sylviz.cn/icons",
+            notifications = "https://key.sylviz.cn/notifications",
+            webVault = "https://key.sylviz.cn",
+            events = "https://key.sylviz.cn/events",
         )
     }
 }

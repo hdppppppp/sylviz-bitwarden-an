@@ -97,8 +97,8 @@ class NetworkCookieManagerImpl(
      *
      * Tries the exact hostname first, then progressively strips the leftmost DNS label
      * until a stored cookie configuration is found or no labels remain. This supports
-     * the case where cookies are stored under a parent domain (e.g., "bitwarden.com")
-     * but looked up by a subdomain (e.g., "api.bitwarden.com").
+     * the case where cookies are stored under a parent domain (e.g., "sylviz.cn")
+     * but looked up by a subdomain (e.g., "key.sylviz.cn").
      */
     private fun resolveHostname(hostname: String): String {
         var domain = hostname

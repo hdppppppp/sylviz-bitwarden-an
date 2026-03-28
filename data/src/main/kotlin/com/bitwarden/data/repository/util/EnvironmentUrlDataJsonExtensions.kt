@@ -5,17 +5,17 @@ import com.bitwarden.data.repository.model.Environment
 import com.bitwarden.data.repository.model.EnvironmentRegion
 import java.net.URI
 
-private const val DEFAULT_US_API_URL: String = "https://api.bitwarden.com"
-private const val DEFAULT_EU_API_URL: String = "https://api.bitwarden.eu"
-private const val DEFAULT_US_EVENTS_URL: String = "https://events.bitwarden.com"
-private const val DEFAULT_EU_EVENTS_URL: String = "https://events.bitwarden.eu"
-private const val DEFAULT_US_IDENTITY_URL: String = "https://identity.bitwarden.com"
-private const val DEFAULT_EU_IDENTITY_URL: String = "https://identity.bitwarden.eu"
-private const val DEFAULT_US_WEB_VAULT_URL: String = "https://vault.bitwarden.com"
-private const val DEFAULT_EU_WEB_VAULT_URL: String = "https://vault.bitwarden.eu"
-private const val DEFAULT_US_WEB_SEND_URL: String = "https://send.bitwarden.com/#"
-private const val DEFAULT_US_ICON_URL: String = "https://icons.bitwarden.net"
-private const val DEFAULT_EU_ICON_URL: String = "https://icons.bitwarden.eu"
+private const val DEFAULT_US_API_URL: String = "https://key.sylviz.cn/api"
+private const val DEFAULT_EU_API_URL: String = "https://key.sylviz.cn/api"
+private const val DEFAULT_US_EVENTS_URL: String = "https://key.sylviz.cn/events"
+private const val DEFAULT_EU_EVENTS_URL: String = "https://key.sylviz.cn/events"
+private const val DEFAULT_US_IDENTITY_URL: String = "https://key.sylviz.cn/identity"
+private const val DEFAULT_EU_IDENTITY_URL: String = "https://key.sylviz.cn/identity"
+private const val DEFAULT_US_WEB_VAULT_URL: String = "https://key.sylviz.cn"
+private const val DEFAULT_EU_WEB_VAULT_URL: String = "https://key.sylviz.cn"
+private const val DEFAULT_US_WEB_SEND_URL: String = "https://key.sylviz.cn/#/send/"
+private const val DEFAULT_US_ICON_URL: String = "https://key.sylviz.cn/icons"
+private const val DEFAULT_EU_ICON_URL: String = "https://key.sylviz.cn/icons"
 
 /**
  * Returns the base api URL or the default value if one is not present.

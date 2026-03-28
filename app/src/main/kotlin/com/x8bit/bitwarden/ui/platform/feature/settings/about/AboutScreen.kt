@@ -57,6 +57,8 @@ import com.bitwarden.ui.util.asText
 @Composable
 fun AboutScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToHelpCenter: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {},
     viewModel: AboutViewModel = hiltViewModel(),
     intentManager: IntentManager = LocalIntentManager.current,
 ) {
@@ -65,17 +67,8 @@ fun AboutScreen(
         when (event) {
             is AboutEvent.NavigateToWebVault -> intentManager.launchUri(event.vaultUrl.toUri())
             AboutEvent.NavigateBack -> onNavigateBack.invoke()
-            AboutEvent.NavigateToHelpCenter -> {
-                intentManager.launchUri("https://bitwarden.com/help".toUri())
-            }
-
-            AboutEvent.NavigateToPrivacyPolicy -> {
-                intentManager.launchUri("https://bitwarden.com/privacy".toUri())
-            }
-
-            AboutEvent.NavigateToLearnAboutOrganizations -> {
-                intentManager.launchUri("https://bitwarden.com/help/about-organizations".toUri())
-            }
+            is AboutEvent.NavigateToHelpCenter -> event.onNavigate()
+            is AboutEvent.NavigateToPrivacyPolicy -> event.onNavigate()
         }
     }
 
@@ -97,10 +90,11 @@ fun AboutScreen(
         AboutScreenContent(
             state = state,
             modifier = Modifier.fillMaxSize(),
-            onHelpCenterClick = { viewModel.trySendAction(AboutAction.HelpCenterClick) },
-            onPrivacyPolicyClick = { viewModel.trySendAction(AboutAction.PrivacyPolicyClick) },
-            onLearnAboutOrgsClick = {
-                viewModel.trySendAction(AboutAction.LearnAboutOrganizationsClick)
+            onHelpCenterClick = { 
+                viewModel.trySendAction(AboutAction.HelpCenterClick(onNavigateToHelpCenter)) 
+            },
+            onPrivacyPolicyClick = { 
+                viewModel.trySendAction(AboutAction.PrivacyPolicyClick(onNavigateToPrivacyPolicy)) 
             },
             onSubmitCrashLogsCheckedChange = {
                 viewModel.trySendAction(AboutAction.SubmitCrashLogsClick(it))
@@ -117,7 +111,6 @@ private fun AboutScreenContent(
     state: AboutState,
     onHelpCenterClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit,
-    onLearnAboutOrgsClick: () -> Unit,
     onSubmitCrashLogsCheckedChange: (Boolean) -> Unit,
     onVersionClick: () -> Unit,
     onWebVaultClick: () -> Unit,
@@ -133,13 +126,9 @@ private fun AboutScreenContent(
             isEnabled = state.isSubmitCrashLogsEnabled,
             onSubmitCrashLogsCheckedChange = onSubmitCrashLogsCheckedChange,
         )
-        BitwardenExternalLinkRow(
+        BitwardenPushRow(
             text = stringResource(id = BitwardenString.bitwarden_help_center),
-            onConfirmClick = onHelpCenterClick,
-            dialogTitle = stringResource(id = BitwardenString.continue_to_help_center),
-            dialogMessage = stringResource(
-                id = BitwardenString.learn_more_about_how_to_use_bitwarden_on_the_help_center,
-            ),
+            onClick = onHelpCenterClick,
             withDivider = false,
             cardStyle = CardStyle.Top(),
             modifier = Modifier
@@ -147,13 +136,9 @@ private fun AboutScreenContent(
                 .fillMaxWidth()
                 .testTag(tag = "BitwardenHelpCenterRow"),
         )
-        BitwardenExternalLinkRow(
+        BitwardenPushRow(
             text = stringResource(id = BitwardenString.privacy_policy),
-            onConfirmClick = onPrivacyPolicyClick,
-            dialogTitle = stringResource(id = BitwardenString.continue_to_privacy_policy),
-            dialogMessage = stringResource(
-                id = BitwardenString.privacy_policy_description_long,
-            ),
+            onClick = onPrivacyPolicyClick,
             withDivider = false,
             cardStyle = CardStyle.Middle(),
             modifier = Modifier
@@ -174,20 +159,6 @@ private fun AboutScreenContent(
                 .standardHorizontalMargin()
                 .fillMaxWidth()
                 .testTag(tag = "BitwardenWebVaultRow"),
-        )
-        BitwardenExternalLinkRow(
-            text = stringResource(id = BitwardenString.learn_org),
-            onConfirmClick = onLearnAboutOrgsClick,
-            dialogTitle = stringResource(id = BitwardenString.continue_to_x, "bitwarden.com"),
-            dialogMessage = stringResource(
-                id = BitwardenString.learn_about_organizations_description_long,
-            ),
-            withDivider = false,
-            cardStyle = CardStyle.Middle(),
-            modifier = Modifier
-                .standardHorizontalMargin()
-                .fillMaxWidth()
-                .testTag(tag = "LearnAboutOrganizationsRow"),
         )
         CopyRow(
             text = state.version,
@@ -276,7 +247,6 @@ private fun AboutScreenContent_preview() {
             ),
             onHelpCenterClick = {},
             onPrivacyPolicyClick = {},
-            onLearnAboutOrgsClick = {},
             onSubmitCrashLogsCheckedChange = { },
             onVersionClick = {},
             onWebVaultClick = {},

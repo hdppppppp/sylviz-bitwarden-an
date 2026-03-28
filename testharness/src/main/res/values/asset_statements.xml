@@ -7,7 +7,7 @@
     -->
     <string name="asset_statements" translatable="false">
         [{
-            \"include\": \"https://bitwarden.com/.well-known/assetlinks.json\"
+            \"include\": \"https://key.sylviz.cn/.well-known/assetlinks.json\"
         }]
     </string>
 </resources>

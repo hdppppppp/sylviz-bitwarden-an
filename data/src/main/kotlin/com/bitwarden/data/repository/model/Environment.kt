@@ -42,7 +42,7 @@ sealed class Environment {
         override val environmentUrlData: EnvironmentUrlDataJson
             get() = EnvironmentUrlDataJson.DEFAULT_EU
         override val label: String
-            get() = "bitwarden.eu"
+            get() = "key.sylviz.cn"
     }
 
     /**

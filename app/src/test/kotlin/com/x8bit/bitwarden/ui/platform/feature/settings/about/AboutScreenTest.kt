@@ -35,8 +35,6 @@ import java.time.ZoneOffset
 
 class AboutScreenTest : BitwardenComposeTest() {
     private var haveCalledNavigateBack = false
-    private var haveCalledNavigateToFlightRecorder = false
-    private var haveCalledNavigateToRecordedLogs = false
 
     private val mutableStateFlow = MutableStateFlow(DEFAULT_STATE)
     private val mutableEventFlow = bufferedMutableSharedFlow<AboutEvent>()
@@ -58,8 +56,8 @@ class AboutScreenTest : BitwardenComposeTest() {
             AboutScreen(
                 viewModel = viewModel,
                 onNavigateBack = { haveCalledNavigateBack = true },
-                onNavigateToFlightRecorder = { haveCalledNavigateToFlightRecorder = true },
-                onNavigateToRecordedLogs = { haveCalledNavigateToRecordedLogs = true },
+                onNavigateToHelpCenter = {},
+                onNavigateToPrivacyPolicy = {},
             )
         }
     }
@@ -70,68 +68,21 @@ class AboutScreenTest : BitwardenComposeTest() {
         verify { viewModel.trySendAction(AboutAction.BackClick) }
     }
 
-    @Test
-    fun `on flight recorder tooltip click should emit FlightRecorderTooltipClick`() {
-        composeTestRule
-            .onNodeWithContentDescription("Flight recorder help, External link")
-            .performScrollTo()
-            .performClick()
-        verify {
-            viewModel.trySendAction(AboutAction.FlightRecorderTooltipClick)
-        }
-    }
-
-    @Test
-    fun `on view recorded logs click should emit ViewRecordedLogsClick`() {
-        composeTestRule
-            .onNodeWithText("View recorded logs")
-            .performScrollTo()
-            .performClick()
-        verify {
-            viewModel.trySendAction(AboutAction.ViewRecordedLogsClick)
-        }
-    }
-
-    @Test
-    fun `on view recorded logs click should emit FlightRecorderCheckedChange`() {
-        composeTestRule
-            .onNodeWithText("Flight recorder")
-            .performScrollTo()
-            .performClick()
-        verify {
-            viewModel.trySendAction(AboutAction.FlightRecorderCheckedChange(isEnabled = true))
-        }
-    }
-
     @Suppress("MaxLineLength")
     @Test
-    fun `on bitwarden help center click should display confirmation dialog and confirm click should emit HelpCenterClick`() {
-        composeTestRule.onNode(isDialog()).assertDoesNotExist()
+    fun `on bitwarden help center click should send HelpCenterClick`() {
         composeTestRule.onNodeWithText("Bitwarden help center").performClick()
-        composeTestRule.onNode(isDialog()).assertExists()
-        composeTestRule
-            .onAllNodesWithText("Continue")
-            .filterToOne(hasAnyAncestor(isDialog()))
-            .performClick()
-        composeTestRule.onNode(isDialog()).assertDoesNotExist()
         verify {
-            viewModel.trySendAction(AboutAction.HelpCenterClick)
+            viewModel.trySendAction(ofType<AboutAction.HelpCenterClick>())
         }
     }
 
     @Suppress("MaxLineLength")
     @Test
-    fun `on privacy policy click should display confirmation dialog and confirm click should emit PrivacyPolicyClick`() {
-        composeTestRule.onNode(isDialog()).assertDoesNotExist()
+    fun `on privacy policy click should send PrivacyPolicyClick`() {
         composeTestRule.onNodeWithText("Privacy Policy").performClick()
-        composeTestRule.onNode(isDialog()).assertExists()
-        composeTestRule
-            .onAllNodesWithText("Continue")
-            .filterToOne(hasAnyAncestor(isDialog()))
-            .performClick()
-        composeTestRule.onNode(isDialog()).assertDoesNotExist()
         verify {
-            viewModel.trySendAction(AboutAction.PrivacyPolicyClick)
+            viewModel.trySendAction(ofType<AboutAction.PrivacyPolicyClick>())
         }
     }
 
@@ -151,73 +102,10 @@ class AboutScreenTest : BitwardenComposeTest() {
         }
     }
 
-    @Suppress("MaxLineLength")
-    @Test
-    fun `on learn about organizations click should display confirmation dialog and confirm click should emit LearnAboutOrganizationsClick`() {
-        composeTestRule.onNode(isDialog()).assertDoesNotExist()
-        composeTestRule
-            .onNodeWithText("Learn about organizations")
-            .performScrollTo()
-            .performClick()
-        composeTestRule.onNode(isDialog()).assertExists()
-        composeTestRule
-            .onAllNodesWithText("Continue")
-            .filterToOne(hasAnyAncestor(isDialog()))
-            .performClick()
-        composeTestRule.onNode(isDialog()).assertDoesNotExist()
-        verify {
-            viewModel.trySendAction(AboutAction.LearnAboutOrganizationsClick)
-        }
-    }
-
     @Test
     fun `on NavigateBack should call onNavigateBack`() {
         mutableEventFlow.tryEmit(AboutEvent.NavigateBack)
         assertTrue(haveCalledNavigateBack)
-    }
-
-    @Test
-    fun `on NavigateToFlightRecorder should call onNavigateToFlightRecorder`() {
-        mutableEventFlow.tryEmit(AboutEvent.NavigateToFlightRecorder)
-        assertTrue(haveCalledNavigateToFlightRecorder)
-    }
-
-    @Test
-    fun `on NavigateToRecordedLogs should call onNavigateToRecordedLogs`() {
-        mutableEventFlow.tryEmit(AboutEvent.NavigateToRecordedLogs)
-        assertTrue(haveCalledNavigateToRecordedLogs)
-    }
-
-    @Test
-    fun `on NavigateToFlightRecorderHelp should call launchUri on IntentManager`() {
-        mutableEventFlow.tryEmit(AboutEvent.NavigateToFlightRecorderHelp)
-        verify(exactly = 1) {
-            intentManager.launchUri("https://bitwarden.com/help/flight-recorder".toUri())
-        }
-    }
-
-    @Test
-    fun `on NavigateToHelpCenter should call launchUri on IntentManager`() {
-        mutableEventFlow.tryEmit(AboutEvent.NavigateToHelpCenter)
-        verify {
-            intentManager.launchUri("https://bitwarden.com/help".toUri())
-        }
-    }
-
-    @Test
-    fun `on NavigateToPrivacyPolicy should call launchUri on IntentManager`() {
-        mutableEventFlow.tryEmit(AboutEvent.NavigateToPrivacyPolicy)
-        verify {
-            intentManager.launchUri("https://bitwarden.com/privacy".toUri())
-        }
-    }
-
-    @Test
-    fun `on NavigateToLearnAboutOrganizations should call launchUri on IntentManager`() {
-        mutableEventFlow.tryEmit(AboutEvent.NavigateToLearnAboutOrganizations)
-        verify {
-            intentManager.launchUri("https://bitwarden.com/help/about-organizations".toUri())
-        }
     }
 
     @Test
@@ -293,33 +181,7 @@ class AboutScreenTest : BitwardenComposeTest() {
             .performScrollTo()
             .assertIsDisplayed()
     }
-
-    @Test
-    fun `flight recorder info should update according to the state`() = runTest {
-        mutableStateFlow.update {
-            it.copy(flightRecorderSubtext = "Logging stops on 3/5/25 at 4:33 PM".asText())
-        }
-
-        composeTestRule
-            .onNodeWithText(text = "Logging stops on 3/5/25 at 4:33 PM")
-            .performScrollTo()
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun `flight recorder switch should update according to the state`() = runTest {
-        mutableStateFlow.update { it.copy(isFlightRecorderEnabled = false) }
-        composeTestRule
-            .onNodeWithText(text = "Flight recorder")
-            .performScrollTo()
-            .assertIsOff()
-
-        mutableStateFlow.update { it.copy(isFlightRecorderEnabled = true) }
-        composeTestRule
-            .onNodeWithText(text = "Flight recorder")
-            .performScrollTo()
-            .assertIsOn()
-    }
+}
 }
 
 private val DEFAULT_STATE = AboutState(
@@ -330,7 +192,5 @@ private val DEFAULT_STATE = AboutState(
     ciData = "ci_data".asText(),
     isSubmitCrashLogsEnabled = false,
     shouldShowCrashLogsButton = true,
-    isFlightRecorderEnabled = false,
-    flightRecorderSubtext = null,
     copyrightInfo = "".asText(),
 )

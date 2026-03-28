@@ -563,13 +563,13 @@ private class ImportLoginsDialogContentPreviewProvider :
                 dialogState = ImportLoginsState.DialogState.GetStarted,
                 viewState = ImportLoginsState.ViewState.InitialContent,
                 showBottomSheet = false,
-                currentWebVaultUrl = "vault.bitwarden.com",
+                currentWebVaultUrl = "key.sylviz.cn",
             ),
             ImportLoginsState(
                 dialogState = ImportLoginsState.DialogState.ImportLater,
                 viewState = ImportLoginsState.ViewState.InitialContent,
                 showBottomSheet = false,
-                currentWebVaultUrl = "vault.bitwarden.com",
+                currentWebVaultUrl = "key.sylviz.cn",
             ),
         )
 }

@@ -298,8 +298,19 @@ interface AuthRepository :
     /**
      * Resets the users password from the [currentPassword] (or null for account recovery resets),
      * to the [newPassword] and optional [passwordHint].
+     * Note: This will log out the user after successful reset.
      */
     suspend fun resetPassword(
+        currentPassword: String?,
+        newPassword: String,
+        passwordHint: String?,
+    ): ResetPasswordResult
+
+    /**
+     * Changes the user's password from [currentPassword] to [newPassword] with optional [passwordHint].
+     * Unlike [resetPassword], this keeps the user logged in after successful change.
+     */
+    suspend fun changePassword(
         currentPassword: String?,
         newPassword: String,
         passwordHint: String?,

@@ -30,14 +30,24 @@ sealed class SettingsAboutRoute {
 fun NavGraphBuilder.aboutDestination(
     isPreAuth: Boolean,
     onNavigateBack: () -> Unit,
+    onNavigateToHelpCenter: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit,
 ) {
     if (isPreAuth) {
         composableWithPushTransitions<SettingsAboutRoute.PreAuth> {
-            AboutScreen(onNavigateBack = onNavigateBack)
+            AboutScreen(
+                onNavigateBack = onNavigateBack,
+                onNavigateToHelpCenter = onNavigateToHelpCenter,
+                onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
+            )
         }
     } else {
         composableWithPushTransitions<SettingsAboutRoute.Standard> {
-            AboutScreen(onNavigateBack = onNavigateBack)
+            AboutScreen(
+                onNavigateBack = onNavigateBack,
+                onNavigateToHelpCenter = onNavigateToHelpCenter,
+                onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
+            )
         }
     }
 }

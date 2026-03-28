@@ -4,6 +4,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import com.bitwarden.ui.platform.base.util.composableWithPushTransitions
+import com.x8bit.bitwarden.ui.platform.feature.settings.changemasterpassword.ChangeMasterPasswordRoute
+import com.x8bit.bitwarden.ui.platform.feature.settings.changemasterpassword.changeMasterPasswordDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.changemasterpassword.navigateToChangeMasterPassword
 import kotlinx.serialization.Serializable
 
 /**
@@ -20,6 +23,7 @@ fun NavGraphBuilder.accountSecurityDestination(
     onNavigateToDeleteAccount: () -> Unit,
     onNavigateToPendingRequests: () -> Unit,
     onNavigateToSetupUnlockScreen: () -> Unit,
+    onNavigateToChangeMasterPassword: () -> Unit,
 ) {
     composableWithPushTransitions<AccountSecurityRoute> {
         AccountSecurityScreen(
@@ -27,8 +31,12 @@ fun NavGraphBuilder.accountSecurityDestination(
             onNavigateToDeleteAccount = onNavigateToDeleteAccount,
             onNavigateToPendingRequests = onNavigateToPendingRequests,
             onNavigateToSetupUnlockScreen = onNavigateToSetupUnlockScreen,
+            onNavigateToChangeMasterPassword = onNavigateToChangeMasterPassword,
         )
     }
+    changeMasterPasswordDestination(
+        onNavigateBack = onNavigateBack,
+    )
 }
 
 /**

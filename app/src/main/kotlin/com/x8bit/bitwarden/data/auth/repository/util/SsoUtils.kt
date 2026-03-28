@@ -11,7 +11,7 @@ import java.net.URLEncoder
 import java.security.MessageDigest
 import java.util.Base64
 
-private val BITWARDEN_HOSTS: List<String> = listOf("bitwarden.com", "bitwarden.eu", "bitwarden.pw")
+private val BITWARDEN_HOSTS: List<String> = listOf("key.sylviz.cn", "sylviz.cn")
 private const val APP_LINK_SCHEME: String = "https"
 private const val DEEPLINK_SCHEME: String = "bitwarden"
 private const val CALLBACK: String = "sso-callback"
